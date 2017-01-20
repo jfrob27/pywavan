@@ -62,16 +62,20 @@ def fan_trans(image, scales=0, reso=1):
 	if (na % 2) == 0:
 		x = (1.*x - (na)/2. )/ na
 		shiftx = (na)/2.
+		ishiftx = (na)/2
 	else:
 		x = (1.*x - (na-1)/2.)/ na
 		shiftx = (na-1.)/2.+1
+		ishiftx = (na-1.)/2.
 
 	if (nb % 2) == 0:
 		y = (1.*y-(nb/2.))/nb
 		shifty = (nb)/2.
+		ishifty = (nb)/2
 	else:
 		y = (1.*y - (nb-1)/2.)/ nb
 		shifty = (nb-1.)/2+1
+		ishifty = (nb-1.)/2.
 
 	#-----------------Variables--------------#
 
@@ -100,8 +104,8 @@ def fan_trans(image, scales=0, reso=1):
 			uv = uv * a[j]		#Energy normalisation
 						
 			W1FT = imFT * uv
-			W1FT2=np.roll(W1FT,int(shiftx), axis=1)
-			W1FT2=np.roll(W1FT2,int(shifty), axis=0)
+			W1FT2=np.roll(W1FT,int(ishiftx), axis=1)
+			W1FT2=np.roll(W1FT2,int(ishifty), axis=0)
 			W1 = np.fft.ifft2(W1FT2)
 			
 			wt[j,:,:]= wt[j,:,:]+ W1
