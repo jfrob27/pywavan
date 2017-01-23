@@ -1,4 +1,4 @@
-PRO EB_PLANE,Q,U,E=E,E=B
+PRO EB_PLANE,Q,U,E=E,B=B
 
 ;------------------------------------------------------------------------------
 ;+
@@ -20,7 +20,7 @@ PRO EB_PLANE,Q,U,E=E,E=B
 ;		B (2D fltarr): the B-mode polarisation map
 ;
 ;
-; PROCEDURE CALLS: XYMAP
+; PROCEDURE CALLS: XYMAP, ATAN2
 ;
 ;
 ; HISTORY: 2017	V1.0 Jean-Francois ROBITAILLE
@@ -61,8 +61,8 @@ endif else begin
   ishifty = (nb-1.)/2.
 endelse
 
-print,"shiftx=",shiftx
-print,"shifty=",shifty
+;print,"shiftx=",shiftx
+;print,"shifty=",shifty
 
 phi = (-1.)*atan2(y,x,/zero)
 

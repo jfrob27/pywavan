@@ -138,7 +138,7 @@ S1a=fltarr(M)
 ;Parameters and loops
 ;-------------------------------------
 
-a = ko * a2			;selon Kirby 2005
+a = ko * a2			;according to Kirby 2005
 
 N=fix(!pi/delta)
 
@@ -170,7 +170,7 @@ FOR j=0, M-1 DO BEGIN
   ;Wavelet Transform
   ;--------------------------------------------
 
-  W1FT=im1FT*uvplan
+  W1FT=imFT*uvplan
   W1FT2=shift(W1FT,ishiftx,ishifty)
   W1=FFT(W1FT2,1)
   if not keyword_set(image2) then begin
