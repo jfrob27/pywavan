@@ -1,14 +1,15 @@
+;test
 ;Coherence analysis of E- & B-mode maps at different wavelength
 
 pro cohe_ana
 
-Q1524 = readfits("/Users/jfrob/postdoc/GALFACTS/GALFACTS_S3_kvis_1524MHz_Q.fits",hd1)
-U1524 = readfits("/Users/jfrob/postdoc/GALFACTS/GALFACTS_S3_kvis_1524MHz_U.fits",hd2)
+Q1524 = readfits("/raid/scratch/jfrob/GALFACTS/GALFACTS_S3_kvis_1524MHz_Q.fits",hd1)
+U1524 = readfits("/raid/scratch/jfrob/GALFACTS/GALFACTS_S3_kvis_1524MHz_U.fits",hd2)
 
-Q1367 = readfits("/Users/jfrob/postdoc/GALFACTS/GALFACTS_S3_kvis_1367MHz_Q.fits")
-U1367 = readfits("/Users/jfrob/postdoc/GALFACTS/GALFACTS_S3_kvis_1367MHz_U.fits")
+Q1367 = readfits("/raid/scratch/jfrob/GALFACTS/GALFACTS_S3_kvis_1367MHz_Q.fits")
+U1367 = readfits("/raid/scratch/jfrob/GALFACTS/GALFACTS_S3_kvis_1367MHz_U.fits")
 
-path = "/Users/jfrob/postdoc/GALFACTS/EB_decomp/"
+path = "/raid/scratch/jfrob/coherence/"
 
 reso = sxpar( hd1, 'CDELT2' ) * 60.
 print,"reso=",reso," arcmin"
@@ -79,6 +80,7 @@ color = 1
 set_plot,'PS'
 load_color_vp
 plot_vp2
+device,filename=path+"coherence_morlet_E1524B1367_S3.eps",/color,/encapsulated
 plot,tab_k,H1c_vec,/xlog,yrange=[-2.0,2.0],psym = 4
 oplot,tab_k,H2c_vec,psym=1,color=4
 oplot,minmax(H1c_vec),[0,0],linestyle=2,color=color

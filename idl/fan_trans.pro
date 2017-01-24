@@ -40,7 +40,7 @@ PRO FAN_TRANS, image, arrdim, reso, wt, tab_k, S1a, image2=image2, S11=S11, S22=
 ;------------------------------------------------------------------------------
 
 if N_params() LT 6 then begin
-print,'Syntax: FAN_TRANSFORM, image, arrdim, reso, wt, tab_k, S1a , image2=image2, apodize=radius, header=header'
+print,'Syntax: FAN_TRANSFORM, image, arrdim, reso, wt, tab_k, S1a , image2=image2, S11=S11, S22=S22, S12=S12, S21=S21, apodize=radius, header=header'
 return
 endif
 
@@ -139,9 +139,12 @@ S11=dblarr(na,nb,M)*0.
 if keyword_set(image2) then begin
   S22=dblarr(na,nb,M)*0.
   S21=dblarr(na,nb,M)*0.
+  S12=dblarr(na,nb,M)*0.
 endif
 
-if keyword_set(S12) then S12=dblarr(na,nb,M)*0.
+;if keyword_set(S12) then begin
+;  S12=dblarr(na,nb,M)*0.
+;endif
 
 ;Parameters and loops
 ;-------------------------------------
@@ -190,10 +193,13 @@ FOR j=0, M-1 DO BEGIN
     W2=FFT(W2FT2,1)
     S22[*,*,j] = S22[*,*,j] + abs(W2)^2
     S21[*,*,j] = S21[*,*,j] + conj(W2)*W1
+    S12[*,*,j] = S12[*,*,j] + conj(W1)*W2
   endif
   
-  if keyword_set(S12) then S12[*,*,j] = S12[*,*,j] + conj(W1)*W2
-
+  ;if keyword_set(S12) then begin
+  ;  S12[*,*,j] = S12[*,*,j] + conj(W1)*W2
+  ;endif
+  
   ENDFOR
 
   if not keyword_set(image2) then begin
