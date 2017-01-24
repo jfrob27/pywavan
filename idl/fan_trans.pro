@@ -1,4 +1,4 @@
-PRO FAN_TRANS, image, arrdim, reso, wt, tab_k, S1a, image2=image2, apodize=radius, header=header
+PRO FAN_TRANS, image, arrdim, reso, wt, tab_k, S1a, image2=image2, S11=S11, S22=S22, S12=S12, S21=S21, apodize=radius, header=header
 
 ;------------------------------------------------------------------------------
 ;+
@@ -21,7 +21,8 @@ PRO FAN_TRANS, image, arrdim, reso, wt, tab_k, S1a, image2=image2, apodize=radiu
 ;		wt (3D complexarr): Fan wavelet transform of the map. Each channel represents the
 ;							wavelet coefficients at a particular scale averaged over angles.
 ;		tab_k (1D fltarr): contains k in unit of X^(-1)
-;		S1a (1D fltarr): contains power spectrum
+;		S1a (1D fltarr): contains power spectrum [if image2 is set, S1a returns the 1D 
+;							cross-spectrum S21 (real_part)]
 ;
 ; KEYWORDS:	image2 = optional second image (2D flarr) same size than 'image'.
 ;						If called, 'wt' and 'S1a' will return repestively the cross-wavelet
@@ -131,9 +132,15 @@ endelse
 
 ;-------------------------------------
 
-S1=dblarr(na,nb,M)*0.
 wt=complexarr(na2,nb2,M)*0.
 S1a=fltarr(M)
+S11=dblarr(na,nb,M)*0.
+
+if keyword_set(image2) then begin
+  S22=dblarr(na,nb,M)*0.
+  S12=dblarr(na,nb,M)*0.
+  S21=dblarr(na,nb,M)*0.
+endif
 
 ;Parameters and loops
 ;-------------------------------------
@@ -173,22 +180,25 @@ FOR j=0, M-1 DO BEGIN
   W1FT=imFT*uvplan
   W1FT2=shift(W1FT,ishiftx,ishifty)
   W1=FFT(W1FT2,1)
-  if not keyword_set(image2) then begin
-    wt[*,*,j] = wt[*,*,j] + W1
-    S1[*,*,j] = S1[*,*,j] + abs(W1)^2
-  endif else begin
+  wt[*,*,j] = wt[*,*,j] + W1
+  S11[*,*,j] = S11[*,*,j] + abs(W1)^2
+  
+  if keyword_set(image2) then begin
     W2FT=im2FT*uvplan
     W2FT2=shift(W2FT,ishiftx,ishifty)
     W2=FFT(W2FT2,1)
-    wt[*,*,j] = wt[*,*,j] + conj(W2)*W1
-  endelse
+    S22[*,*,j] = S22[*,*,j] + abs(W2)^2
+  endif
+  
+  if keyword_set(S12) then S12[*,*,j] = S12[*,*,j] + conj(W1)*W2
+  if keyword_set(S21) then S21[*,*,j] = S21[*,*,j] + conj(W2)*W1
 
   ENDFOR
 
   if not keyword_set(image2) then begin
     S1a[j]=total(S1[*,*,j]) * delta / (float(N)*float(na2)*float(nb2))
   endif else begin
-    S1a[j]=total(real_part(wt[*,*,j])) * delta / (float(N)*float(na2)*float(nb2))
+    S1a[j]=total(real_part(S21[*,*,j])) * delta / (float(N)*float(na2)*float(nb2))
   endelse
 
 ENDFOR
