@@ -43,6 +43,8 @@ fan_trans, B1367, [2048,2048], reso, wt, tab_k, S21a, image2=E1367, S21=S21, S12
 ;Cross Spectra
 ;----------------------------------------
 
+print,"Compute transfer functions ..."
+
 H1c_im=(S22*S1y-S12*S2y)/(S11*S22-abs(S12)^2.)
 
 H2c_im=(S11*S2y-S21*S1y)/(S11*S22-abs(S12)^2.)
@@ -50,15 +52,15 @@ H2c_im=(S11*S2y-S21*S1y)/(S11*S22-abs(S12)^2.)
 M = n_elements(S1ya)
 
 for i=0, M-1 do begin
-  H1c_vec[i]=mean(real_part(H1c_im[*,*,i]))
-  H2c_vec[i]=mean(real_part(H2c_im[*,*,i]))
+  H1c_vec[i]=mean(abs(H1c_im[*,*,i]))
+  H2c_vec[i]=mean(abs(H2c_im[*,*,i]))
 endfor
 
 proj_cube_data,H1c_im,hd1,hd2,proj=H1c_impr,hdproj=headerpr
 proj_cube_data,H2c_im,hd1,hd2,proj=H2c_impr,hdproj=headerpr
 
-writefits,path+"H1c_S3.fits",H1c_impr,headerpr
-writefits,path+"H2c_S3.fits",H2c_impr,headerpr
+writefits,path+"H1c_S3.fits",abs(H1c_impr),headerpr
+writefits,path+"H2c_S3.fits",abs(H2c_impr),headerpr
 
 ;Plot
 ;---------------------------------------

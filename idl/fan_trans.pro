@@ -138,9 +138,10 @@ S11=dblarr(na,nb,M)*0.
 
 if keyword_set(image2) then begin
   S22=dblarr(na,nb,M)*0.
-  S12=dblarr(na,nb,M)*0.
   S21=dblarr(na,nb,M)*0.
 endif
+
+if keyword_set(S12) then S12=dblarr(na,nb,M)*0.
 
 ;Parameters and loops
 ;-------------------------------------
@@ -188,10 +189,10 @@ FOR j=0, M-1 DO BEGIN
     W2FT2=shift(W2FT,ishiftx,ishifty)
     W2=FFT(W2FT2,1)
     S22[*,*,j] = S22[*,*,j] + abs(W2)^2
+    S21[*,*,j] = S21[*,*,j] + conj(W2)*W1
   endif
   
   if keyword_set(S12) then S12[*,*,j] = S12[*,*,j] + conj(W1)*W2
-  if keyword_set(S21) then S21[*,*,j] = S21[*,*,j] + conj(W2)*W1
 
   ENDFOR
 
