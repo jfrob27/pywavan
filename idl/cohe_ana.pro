@@ -1,4 +1,3 @@
-;test
 ;Coherence analysis of E- & B-mode maps at different wavelength
 
 pro cohe_ana
@@ -51,6 +50,9 @@ H1c_im=(S22*S1y-S12*S2y)/(S11*S22-abs(S12)^2.)
 H2c_im=(S11*S2y-S21*S1y)/(S11*S22-abs(S12)^2.)
 
 M = n_elements(S1ya)
+
+H1c_vec=fltarr(M)*0.
+H2c_vec=fltarr(M)*0.
 
 for i=0, M-1 do begin
   H1c_vec[i]=mean(abs(H1c_im[*,*,i]))
