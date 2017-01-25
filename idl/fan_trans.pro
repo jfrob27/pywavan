@@ -203,7 +203,7 @@ FOR j=0, M-1 DO BEGIN
   ENDFOR
 
   if not keyword_set(image2) then begin
-    S1a[j]=total(S1[*,*,j]) * delta / (float(N)*float(na2)*float(nb2))
+    S1a[j]=total(S11[*,*,j]) * delta / (float(N)*float(na2)*float(nb2))
   endif else begin
     S1a[j]=total(real_part(S21[*,*,j])) * delta / (float(N)*float(na2)*float(nb2))
   endelse
