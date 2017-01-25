@@ -112,20 +112,20 @@ tab_k = 1. /(a2*reso)
 xymap, na, nb, x, y
 
 if (na mod 2) eq 0 then begin
-  x = ( 1.*x - na/2. )
+  x = ( 1.*x - na/2. ) / na
   shiftx = na/2
   ishiftx = na/2
 endif else begin
-  x = ( 1.*x - (na - 1)/2. )
+  x = ( 1.*x - (na - 1)/2. ) / na
   shiftx = (na-1.)/2.+1
   ishiftx = (na-1.)/2.
   endelse
 if (nb mod 2) eq 0 then begin
-  y = ( 1.*y - nb/2.)
+  y = ( 1.*y - nb/2.) / nb
   shifty = nb/2
   ishifty = nb/2
 endif else begin
-  y = ( 1.*y - (nb - 1)/2.)
+  y = ( 1.*y - (nb - 1)/2.) / nb
   shifty = (nb-1.)/2.+1
   ishifty = (nb-1.)/2.
 endelse
@@ -162,8 +162,10 @@ if keyword_set(image2) then begin
 endif
 
 FOR j=0, M-1 DO BEGIN
+;FOR j=18, 18 DO BEGIN
 
   FOR i=0, N-1 DO BEGIN
+  ;FOR i=0, 0 DO BEGIN
   uvplan=0.
 
   t=delta*i
