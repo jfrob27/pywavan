@@ -138,8 +138,8 @@ S11=dblarr(na,nb,M)*0.
 
 if keyword_set(image2) then begin
   S22=dblarr(na,nb,M)*0.
-  S21=dblarr(na,nb,M)*0.
-  S12=dblarr(na,nb,M)*0.
+  S21=complexarr(na,nb,M)*0.
+  S12=complexarr(na,nb,M)*0.
 endif
 
 ;if keyword_set(S12) then begin
@@ -162,10 +162,8 @@ if keyword_set(image2) then begin
 endif
 
 FOR j=0, M-1 DO BEGIN
-;FOR j=18, 18 DO BEGIN
 
   FOR i=0, N-1 DO BEGIN
-  ;FOR i=0, 0 DO BEGIN
   uvplan=0.
 
   t=delta*i
