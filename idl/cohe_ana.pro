@@ -57,8 +57,8 @@ H1c_vec=fltarr(M)*0.
 H2c_vec=fltarr(M)*0.
 
 for i=0, M-1 do begin
-  H1c_vec[i]=mean(abs(H1c_im[*,*,i]))
-  H2c_vec[i]=mean(abs(H2c_im[*,*,i]))
+  H1c_vec[i]=mean(real_part(H1c_im[*,*,i]))
+  H2c_vec[i]=mean(real_part(H2c_im[*,*,i]))
 endfor
 
 ;proj_cube_data,H1c_im,hd1,hd2,proj=H1c_impr,hdproj=headerpr
@@ -86,7 +86,7 @@ set_plot,'PS'
 load_color_vp
 plot_vp2
 device,filename="~/Data/coherence_morlet_E1524B1367_S3.eps",/color,/encapsulated
-plot,tab_k,H1c_vec,/xlog,psym = 4
+plot,tab_k,H1c_vec,/xlog,psym = 4,color=color
 oplot,tab_k,H2c_vec,psym=1,color=4
 oplot,minmax(H1c_vec),[0,0],linestyle=2,color=color
 legend_loc,['H1','H2'],psym=[4,1],linestyle=[1,1],color=[color,4],textcolor=[color,color],/right
@@ -105,7 +105,7 @@ ko= 5.336
 delta= ( 2*sqrt(-2*alog(0.75)) )/ko			;Delta between scales for reconstruction
 
 ;Map of E mode rotated in B mode
-interval=[tab_k[0],tab_k[14]]
+interval=[tab_k[0],tab_k[M-1]]
 inverse_wtc, H1c_im*wt, tab_k, reso, delta, interval, H_rec=RM
 RMpr = mproj(RM,hd1,hd2)
 
