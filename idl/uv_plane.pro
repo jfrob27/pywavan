@@ -31,3 +31,28 @@ PRO UV_PLANE, na, nb, u=u, v=v, shiftu=shiftu, shiftv=shiftv, ishiftu=ishiftu, i
 ;
 ;-
 ;------------------------------------------------------------------------------
+
+xymap, na, nb, x, y
+
+if (na mod 2) eq 0 then begin
+  x = ( 1.*x - na/2. )
+  shiftx = na/2
+  ishiftx = na/2
+endif else begin
+  x = ( 1.*x - (na - 1)/2. )
+  shiftx = (na-1.)/2.+1
+  ishiftx = (na-1.)/2.
+endelse
+if (nb mod 2) eq 0 then begin
+  y = ( 1.*y - nb/2.)
+  shifty = nb/2
+  ishifty = nb/2
+endif else begin
+  y = ( 1.*y - (nb - 1)/2.)
+  shifty = (nb-1.)/2.+1
+  ishifty = (nb-1.)/2.
+endelse
+
+return
+
+END
