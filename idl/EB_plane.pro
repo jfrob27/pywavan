@@ -33,6 +33,9 @@ print,'Syntax: EB_plane,Q ,U ,E=E ,E=B'
 return
 endif
 
+Q = find_nan(Q)
+U = find_nan(U)
+
 ;-------------------Angle matrix---------------------
 
 N = size(Q)
@@ -78,16 +81,16 @@ UFTsh = shift(UFT,shiftx,shifty)
 
 ;See equations 24 & 25 of Seljak 1997, ApJ, 482, 6S
 
-EFTsh = QFTsh*cos(2.*phi) + UFTsh*sin(2.*phi)
+angle = 2.*phi + !pi/2.
 
-BFTsh = -1.*QFTsh*sin(2.*phi) + UFTsh*cos(2.*phi)
+EFTsh = QFTsh*cos(angle) + UFTsh*sin(angle)
+
+BFTsh = -1.*QFTsh*sin(angle) + UFTsh*cos(angle)
 
 EFT = shift(EFTsh,ishiftx,ishifty)
-E = real_part(fft(EFT,1)) * (-1.)
+E = real_part(fft(EFT,1))
 
 BFT = shift(BFTsh,ishiftx,ishifty)
-B = real_part(fft(BFT,1)) * (-1.)
-
-return
+B = real_part(fft(BFT,1))
 
 END
