@@ -1,4 +1,4 @@
-PRO FAN_TRANS, image, arrdim, reso, wt, tab_k, S1a, image2=image2, S11=S11, S22=S22, S12=S12, S21=S21, apodize=radius, header=header
+PRO FAN_TRANS, image, arrdim, reso, wt, tab_k, Sk, S11, image2=image2, apodize=radius, header=header
 
 ;------------------------------------------------------------------------------
 ;+
@@ -21,8 +21,10 @@ PRO FAN_TRANS, image, arrdim, reso, wt, tab_k, S1a, image2=image2, S11=S11, S22=
 ;		wt (3D complexarr): Fan wavelet transform of the map. Each channel represents the
 ;							wavelet coefficients at a particular scale averaged over angles.
 ;		tab_k (1D fltarr): contains k in unit of X^(-1)
-;		S1a (1D fltarr): contains power spectrum [if image2 is set, S1a returns the 1D 
+;		Sk (1D fltarr): contains power spectrum [if image2 is set, S1a returns the 1D 
 ;							cross-spectrum S21 (real_part)]
+;		S11 (3D fltarr [complexarr]): same as Sk but not average over the image [if image2
+;									is set, S11 returns the 3D cross-spectrum S21 (complex)]
 ;
 ; KEYWORDS:	image2 = optional second image (2D flarr) same size than 'image'.
 ;						If called, 'wt' and 'S1a' will return repestively the cross-wavelet
@@ -31,7 +33,7 @@ PRO FAN_TRANS, image, arrdim, reso, wt, tab_k, S1a, image2=image2, S11=S11, S22=
 ;                     equal to 1 for radii < R ( 0 < R < 1 required) Ex.:0.98
 ;			header = header of the image updated with the padding
 ;
-; PROCEDURE CALLS: APODIZE, XYMAP,ralonge,ralonge_hdless
+; PROCEDURE CALLS: uv_plane, APODIZE, XYMAP,ralonge,ralonge_hdless
 ;
 ;
 ; HISTORY: 2013	V1.0 Jean-Francois ROBITAILLE
@@ -40,7 +42,7 @@ PRO FAN_TRANS, image, arrdim, reso, wt, tab_k, S1a, image2=image2, S11=S11, S22=
 ;------------------------------------------------------------------------------
 
 if N_params() LT 6 then begin
-print,'Syntax: FAN_TRANSFORM, image, arrdim, reso, wt, tab_k, S1a , image2=image2, S11=S11, S22=S22, S12=S12, S21=S21, apodize=radius, header=header'
+print,'Syntax: FAN_TRANSFORM, image, arrdim, reso, wt, tab_k, Sk, image2=image2, apodize=radius, header=header'
 return
 endif
 
@@ -109,19 +111,13 @@ tab_k = 1. /(a2*reso)
 ;Creation of the UV-plane
 ;-------------------------------------
 
-UV_PLANE, na, nb, u=x, v=y, shiftu=shiftx, shiftv=shifty, ishiftu=ishiftx, ishiftv=ishifty
+uvplane, na, nb, u=x, v=y, shiftu=shiftx, shiftv=shifty, ishiftu=ishiftx, ishiftv=ishifty
 
 ;-------------------------------------
 
 wt=complexarr(na2,nb2,M)*0.
-S1a=fltarr(M)
+Sk=fltarr(M)
 S11=dblarr(na,nb,M)*0.
-
-if keyword_set(image2) then begin
-  S22=dblarr(na,nb,M)*0.
-  S21=complexarr(na,nb,M)*0.
-  S12=complexarr(na,nb,M)*0.
-endif
 
 ;if keyword_set(S12) then begin
 ;  S12=dblarr(na,nb,M)*0.
@@ -166,28 +162,19 @@ FOR j=0, M-1 DO BEGIN
   W1FT2=shift(W1FT,ishiftx,ishifty)
   W1=FFT(W1FT2,1)
   wt[*,*,j] = wt[*,*,j] + W1
-  S11[*,*,j] = S11[*,*,j] + abs(W1)^2
   
   if keyword_set(image2) then begin
     W2FT=im2FT*uvplan
     W2FT2=shift(W2FT,ishiftx,ishifty)
     W2=FFT(W2FT2,1)
-    S22[*,*,j] = S22[*,*,j] + abs(W2)^2
-    S21[*,*,j] = S21[*,*,j] + conj(W2)*W1
-    S12[*,*,j] = S12[*,*,j] + conj(W1)*W2
-  endif
-  
-  ;if keyword_set(S12) then begin
-  ;  S12[*,*,j] = S12[*,*,j] + conj(W1)*W2
-  ;endif
+    S11[*,*,j] = S11[*,*,j] + conj(W2)*W1
+  endif else begin
+    S11[*,*,j] = S11[*,*,j] + abs(W1)^2
+  endelse
   
   ENDFOR
 
-  if not keyword_set(image2) then begin
-    S1a[j]=total(S11[*,*,j]) * delta / (float(N)*float(na2)*float(nb2))
-  endif else begin
-    S1a[j]=total(real_part(S21[*,*,j])) * delta / (float(N)*float(na2)*float(nb2))
-  endelse
+  Sk[j]=total(S11[*,*,j]) * delta / (float(N)*float(na2)*float(nb2))
 
 ENDFOR
 
