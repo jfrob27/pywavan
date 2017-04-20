@@ -39,7 +39,7 @@ if (na mod 2) eq 0 then begin
   shiftu = na/2
   ishiftu = na/2
 endif else begin
-  u = ( 1.*u - (na - 1)/2. ) / na
+  u = ( 1.*u - (na + 1)/2. ) / na
   shiftu = (na-1.)/2.+1
   ishiftu = (na-1.)/2.
 endelse
@@ -48,7 +48,7 @@ if (nb mod 2) eq 0 then begin
   shiftv = nb/2
   ishiftv = nb/2
 endif else begin
-  v = ( 1.*v - (nb - 1)/2.) / nb
+  v = ( 1.*v - (nb + 1)/2.) / nb
   shiftv = (nb-1.)/2.+1
   ishiftv = (nb-1.)/2.
 endelse
