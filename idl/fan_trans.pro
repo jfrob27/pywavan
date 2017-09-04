@@ -42,7 +42,7 @@ PRO FAN_TRANS, image, arrdim, reso, wt, tab_k, Sk, S11, image2=image2, apodize=r
 ;------------------------------------------------------------------------------
 
 if N_params() LT 6 then begin
-print,'Syntax: FAN_TRANSFORM, image, arrdim, reso, wt, tab_k, Sk, image2=image2, apodize=radius, header=header'
+print,'Syntax: FAN_TRANS, image, arrdim, reso, wt, tab_k, Sk, image2=image2, apodize=radius, header=header'
 return
 endif
 
@@ -111,7 +111,7 @@ tab_k = 1. /(a2*reso)
 ;Creation of the UV-plane
 ;-------------------------------------
 
-uvplane, na, nb, u=x, v=y, shiftu=shiftx, shiftv=shifty, ishiftu=ishiftx, ishiftv=ishifty
+UV_PLANE, na, nb, u=x, v=y, shiftu=shiftx, shiftv=shifty, ishiftu=ishiftx, ishiftv=ishifty
 
 ;-------------------------------------
 
