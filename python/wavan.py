@@ -15,7 +15,7 @@ def fan_trans(image, scales=0, reso=1):
 	Parameters
 	----------
 	image : array_like
-		Input array, must 2-dimentional and real
+		Input array, must be 2-dimentional and real
 	scales : array_like, optional
 		Array of spatial scales in terms of Fourier wavenumber k
 	reso : float, optional
