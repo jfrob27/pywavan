@@ -1,11 +1,6 @@
 import numpy as np
 
-#definition of atrou, fan, halo wavelet functions
-
-###########################################################################
-
-
-def fan_trans(image, scales=0, reso=1):
+def fan_trans(image, scales=0, reso=1, q=0):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -32,8 +27,8 @@ def fan_trans(image, scales=0, reso=1):
 	#--------------------Definitions----------------------#
 	ko= 5.336
 	delta = (2.*np.sqrt(-2.*np.log(.75)))/ko
-	na=float(image.shape[1])
-	nb=float(image.shape[0])
+	na=float(image.shape[0])
+	nb=float(image.shape[1])
 	
 	#--------------Spectral Logarithm--------------------#
 	
@@ -82,7 +77,20 @@ def fan_trans(image, scales=0, reso=1):
 	S11 = np.zeros((M,int(nb),int(na)))
 	wt = np.zeros((M,int(nb),int(na)), dtype=complex)
 
-	S1a = np.zeros(M)
+	if q != 0:
+		S1a = np.zeros((3,M))
+		S1c = np.zeros((M,na,nb))
+		S1n = np.zeros((M,na,nb))
+		W1c = np.zeros((M,na,nb), dtype=complex)
+		Wcp = np.zeros((na,nb), dtype=complex)
+		W1n = np.zeros((M,na,nb), dtype=complex)
+		Wnp = np.zeros((na,nb), dtype=complex)
+		temoin = np.zeros((na,nb))
+		module = np.zeros((M,na,nb))
+		wtcoeff = np.zeros((3*M,int(nb),int(na)), dtype=complex)
+	else:
+		S1a = np.zeros(M)
+		wtcoeff = np.zeros((M,int(nb),int(na)), dtype=complex)
 	
 	a = ko * a2				#Scales in the wavelet space
 	N = int(np.pi/delta)	#Number of orientation for the Morlet wavelet
@@ -110,7 +118,56 @@ def fan_trans(image, scales=0, reso=1):
 			
 			wt[j,:,:]= wt[j,:,:]+ W1
 			S11[j,:,:]= S11[j,:,:] + np.abs(W1)**2.
-										
-		S1a[j]=np.mean(S11[j,:,:]) * delta / float(N)
+			
+	#----------------Segmentation------------------------#
+	
+			if q != 0:
+			
+				module=abs(W1)
+				tresh=module.max()
+				treshp=module.max()*2.
 
-	return wt, tab_k, S1a
+				while ((treshp-tresh) != 0):
+					tresh=treshp
+					temoin = temoin*0
+	
+					indx=np.where(module <= tresh)
+					temoin=(module[indx])**2.
+					Sigtresh=np.sum(temoin)/(temoin.shape[0])
+					treshp = q *np.sqrt(Sigtresh)
+	
+				tresh=treshp
+				cohe= np.where(module > tresh)
+
+				if (module[cohe].shape[0] > 0):
+
+					Wcp[cohe]=W1[cohe]
+					W1c[j,:,:] = W1c[j,:,:] + Wcp
+					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
+
+					Wcp=Wcp*0
+				noncohe =np.where(module <= tresh)
+
+				if (module[noncohe].shape[0] >  0):
+					Wnp[noncohe]=W1[noncohe]
+					W1n[j,:,:] = W1n[j,:,:]+ Wnp
+					S1n[j,:,:]= S1n[j,:,:] + np.abs(Wnp)**2.
+					Wnp=Wnp*0
+				
+	#----------------Wavelet power spectra---------------#
+								
+		if q != 0:
+			S1a[0,j]=np.mean(S11[j,:,:]) * delta / float(N)
+			S1a[1,j]=np.mean(S1c[j,:,:]) * delta / float(N)
+			S1a[2,j]=np.mean(S1n[j,:,:]) * delta / float(N)
+		else:
+			S1a[j]=np.mean(S11[j,:,:]) * delta / float(N)
+			
+	if q != 0:
+		wtcoeff[0:M,:,:] = wt
+		wtcoeff[M:2*M,:,:] = W1c
+		wtcoeff[2*M:3*M,:,:] = W1n
+	else:
+		wtcoeff = wt
+		
+	return wtcoeff, tab_k, S1a

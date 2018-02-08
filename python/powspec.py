@@ -42,18 +42,26 @@ def powspec(image, reso=1):
 	x,y=np.meshgrid(x,y)
 
 	if (na % 2) == 0:
-		x = (1.*x - (na)/2. )/ na
+		x = (1.*x - ((na)/2.) ) / na
+		shiftx = (na)/2.
 	else:
 		x = (1.*x - (na-1)/2.)/ na
+		shiftx = (na-1.)/2.+1
 
 	if (nb % 2) == 0:
-		y = (1.*y-(nb/2.))/nb
+		y = (1.*y - ((nb/2.)) ) / nb
+		shifty = (nb)/2.
 	else:
 		y = (1.*y - (nb-1)/2.)/ nb
+		shifty = (nb-1.)/2+1
 
 	k_mat = np.sqrt(x**2 + y**2)
 	k_mat = k_mat * nf 
-	k_mod = np.round(np.fft.ifftshift(k_mat),decimals=0)
+	#k_mod = np.round(np.fft.fftshift(k_mat),decimals=0)
+	
+	k_mat= np.roll(k_mat,int(shiftx), axis=1)
+	k_mat= np.roll(k_mat,int(shifty), axis=0)
+	k_mod = np.round(k_mat,decimals=0)
 
 	hval, rbin = np.histogram(k_mod,bins=bins)
 
