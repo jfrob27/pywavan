@@ -27,8 +27,8 @@ def fan_trans(image, scales=0, reso=1, q=0):
 	#--------------------Definitions----------------------#
 	ko= 5.336
 	delta = (2.*np.sqrt(-2.*np.log(.75)))/ko
-	na=float(image.shape[0])
-	nb=float(image.shape[1])
+	na=image.shape[0]
+	nb=image.shape[1]
 	
 	#--------------Spectral Logarithm--------------------#
 	
@@ -74,8 +74,8 @@ def fan_trans(image, scales=0, reso=1, q=0):
 
 	#-----------------Variables--------------#
 
-	S11 = np.zeros((M,int(nb),int(na)))
-	wt = np.zeros((M,int(nb),int(na)), dtype=complex)
+	S11 = np.zeros((M,nb,na))
+	wt = np.zeros((M,nb,na), dtype=complex)
 
 	if q != 0:
 		S1a = np.zeros((3,M))
@@ -87,10 +87,10 @@ def fan_trans(image, scales=0, reso=1, q=0):
 		Wnp = np.zeros((na,nb), dtype=complex)
 		temoin = np.zeros((na,nb))
 		module = np.zeros((M,na,nb))
-		wtcoeff = np.zeros((3*M,int(nb),int(na)), dtype=complex)
+		wtcoeff = np.zeros((3*M,nb,na), dtype=complex)
 	else:
 		S1a = np.zeros(M)
-		wtcoeff = np.zeros((M,int(nb),int(na)), dtype=complex)
+		wtcoeff = np.zeros((M,nb,na), dtype=complex)
 	
 	a = ko * a2				#Scales in the wavelet space
 	N = int(np.pi/delta)	#Number of orientation for the Morlet wavelet
@@ -109,7 +109,7 @@ def fan_trans(image, scales=0, reso=1, q=0):
 				
 			uv=np.exp( -.5*((a[j]*x - ko*np.cos(t))**2. + (a[j]*y - ko*np.sin(t))**2.))
 					
-			uv = uv * a[j]		#Energy normalisation
+			#uv = uv * a[j]		#Energy normalisation on coefficients directly
 						
 			W1FT = imFT * uv
 			W1FT2=np.roll(W1FT,int(ishiftx), axis=1)
@@ -117,7 +117,8 @@ def fan_trans(image, scales=0, reso=1, q=0):
 			W1 = np.fft.ifft2(W1FT2)
 			
 			wt[j,:,:]= wt[j,:,:]+ W1
-			S11[j,:,:]= S11[j,:,:] + np.abs(W1)**2.
+			#Wavelet power spectrum with scale power normalisation
+			S11[j,:,:]= S11[j,:,:] + np.abs(W1)**2. * a[j]**2. 
 			
 	#----------------Segmentation------------------------#
 	
@@ -143,7 +144,8 @@ def fan_trans(image, scales=0, reso=1, q=0):
 
 					Wcp[cohe]=W1[cohe]
 					W1c[j,:,:] = W1c[j,:,:] + Wcp
-					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
+					#Coherent power spectrum with scale power normalisation
+					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2. * a[j]**2.
 
 					Wcp=Wcp*0
 				noncohe =np.where(module <= tresh)
@@ -151,7 +153,8 @@ def fan_trans(image, scales=0, reso=1, q=0):
 				if (module[noncohe].shape[0] >  0):
 					Wnp[noncohe]=W1[noncohe]
 					W1n[j,:,:] = W1n[j,:,:]+ Wnp
-					S1n[j,:,:]= S1n[j,:,:] + np.abs(Wnp)**2.
+					#Gaussian power spectrum with scale power normalisation
+					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2. * a[j]**2.
 					Wnp=Wnp*0
 				
 	#----------------Wavelet power spectra---------------#
