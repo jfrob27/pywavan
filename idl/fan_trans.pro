@@ -153,7 +153,7 @@ FOR j=0, M-1 DO BEGIN
   ;Energy normalisation
   ;--------------------------------------------
 
-  uvplan= uvplan * a[j]
+  uvplan= uvplan ;* a[j]
 
   ;Wavelet Transform
   ;--------------------------------------------
@@ -174,7 +174,7 @@ FOR j=0, M-1 DO BEGIN
   
   ENDFOR
 
-  Sk[j]=total(S11[*,*,j]) * delta / (float(N)*float(na2)*float(nb2))
+  Sk[j]=total(S11[*,*,j]) * a[j]^2 * delta / (float(N)*float(na2)*float(nb2))
 
 ENDFOR
 

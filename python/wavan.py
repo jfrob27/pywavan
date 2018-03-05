@@ -1,6 +1,7 @@
 import numpy as np
+from scipy.stats import skew
 
-def fan_trans(image, scales=0, reso=1, q=0):
+def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -27,8 +28,8 @@ def fan_trans(image, scales=0, reso=1, q=0):
 	#--------------------Definitions----------------------#
 	ko= 5.336
 	delta = (2.*np.sqrt(-2.*np.log(.75)))/ko
-	na=image.shape[0]
-	nb=image.shape[1]
+	na=image.shape[1]
+	nb=image.shape[0]
 	
 	#--------------Spectral Logarithm--------------------#
 	
@@ -79,14 +80,14 @@ def fan_trans(image, scales=0, reso=1, q=0):
 
 	if q != 0:
 		S1a = np.zeros((3,M))
-		S1c = np.zeros((M,na,nb))
-		S1n = np.zeros((M,na,nb))
-		W1c = np.zeros((M,na,nb), dtype=complex)
-		Wcp = np.zeros((na,nb), dtype=complex)
-		W1n = np.zeros((M,na,nb), dtype=complex)
-		Wnp = np.zeros((na,nb), dtype=complex)
-		temoin = np.zeros((na,nb))
-		module = np.zeros((M,na,nb))
+		S1c = np.zeros((M,nb,na))
+		S1n = np.zeros((M,nb,na))
+		W1c = np.zeros((M,nb,na), dtype=complex)
+		Wcp = np.zeros((nb,na), dtype=complex)
+		W1n = np.zeros((M,nb,na), dtype=complex)
+		Wnp = np.zeros((nb,na), dtype=complex)
+		temoin = np.zeros((nb,na))
+		module = np.zeros((M,nb,na))
 		wtcoeff = np.zeros((3*M,nb,na), dtype=complex)
 	else:
 		S1a = np.zeros(M)
@@ -122,7 +123,7 @@ def fan_trans(image, scales=0, reso=1, q=0):
 			
 	#----------------Segmentation------------------------#
 	
-			if q != 0:
+			if (q != 0):
 			
 				module=abs(W1)
 				tresh=module.max()
@@ -135,7 +136,15 @@ def fan_trans(image, scales=0, reso=1, q=0):
 					indx=np.where(module <= tresh)
 					temoin=(module[indx])**2.
 					Sigtresh=np.sum(temoin)/(temoin.shape[0])
-					treshp = q *np.sqrt(Sigtresh)
+					treshp = q[j] *np.sqrt(Sigtresh)
+					
+					#Adjust q according to the skewness
+					if ((treshp-tresh) == 0) & (qdyn==True):
+						noncohe =np.where(module <= tresh)
+						skewn = skew(abs(W1[noncohe]))
+						if skewn > 0.7:
+							q[j] = q[j] - 0.1
+							treshp = module.max()*2.
 	
 				tresh=treshp
 				cohe= np.where(module > tresh)
@@ -173,4 +182,4 @@ def fan_trans(image, scales=0, reso=1, q=0):
 	else:
 		wtcoeff = wt
 		
-	return wtcoeff, tab_k, S1a
+	return wtcoeff, tab_k, S1a, q
