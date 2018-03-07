@@ -21,7 +21,7 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 	-------
 	wt : data cube of wavelet coefficients (complex array)
 		wt[scales,nx,ny] -> is the size of the input image
-	tab_k : Array of spatial scales used for the decomposition
+	wav_k : Array of spatial scales used for the decomposition
 	S1a : Wavelet power spectrum
 		1-dimensional array -> S11(scales)
 	'''
@@ -44,9 +44,9 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 			a2[i+1]=a2[i]-delta
 
 		a2=np.exp(a2)
-		tab_k = 1. / a2
+		wav_k = 1. / a2
 	else:
-		tab_k = scales * reso
+		wav_k = scales * reso
 		a2 = 1. / scales
 		M = scales.size
 		
@@ -58,7 +58,7 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 	if (na % 2) == 0:
 		x = (1.*x - (na)/2. )/ na
 		shiftx = (na)/2.
-		ishiftx = (na)/2
+		ishiftx = (na)/2.
 	else:
 		x = (1.*x - (na-1)/2.)/ na
 		shiftx = (na-1.)/2.+1
@@ -76,21 +76,26 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 	#-----------------Variables--------------#
 
 	S11 = np.zeros((M,nb,na))
+	nS11 = np.zeros((M,nb,na))
 	wt = np.zeros((M,nb,na), dtype=complex)
 
 	if q != 0:
 		S1a = np.zeros((3,M))
 		S1c = np.zeros((M,nb,na))
 		S1n = np.zeros((M,nb,na))
+		nS1c = np.zeros((M,nb,na))
+		nS1n = np.zeros((M,nb,na))
 		W1c = np.zeros((M,nb,na), dtype=complex)
 		Wcp = np.zeros((nb,na), dtype=complex)
 		W1n = np.zeros((M,nb,na), dtype=complex)
 		Wnp = np.zeros((nb,na), dtype=complex)
 		temoin = np.zeros((nb,na))
 		module = np.zeros((M,nb,na))
+		S11a = np.zeros((3*M,nb,na))
 		wtcoeff = np.zeros((3*M,nb,na), dtype=complex)
 	else:
 		S1a = np.zeros(M)
+		S11a = np.zeros((M,nb,na))
 		wtcoeff = np.zeros((M,nb,na), dtype=complex)
 	
 	a = ko * a2				#Scales in the wavelet space
@@ -118,8 +123,8 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 			W1 = np.fft.ifft2(W1FT2)
 			
 			wt[j,:,:]= wt[j,:,:]+ W1
-			#Wavelet power spectrum with scale power normalisation
-			S11[j,:,:]= S11[j,:,:] + np.abs(W1)**2. * a[j]**2. 
+			nS11[j,:,:]= nS11[j,:,:] + np.abs(W1)
+			S11[j,:,:]= S11[j,:,:] + np.abs(W1)**2. 
 			
 	#----------------Segmentation------------------------#
 	
@@ -153,8 +158,8 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 
 					Wcp[cohe]=W1[cohe]
 					W1c[j,:,:] = W1c[j,:,:] + Wcp
-					#Coherent power spectrum with scale power normalisation
-					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2. * a[j]**2.
+					nS1c[j,:,:] = nS1c[j,:,:] + np.abs(Wcp)
+					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
 
 					Wcp=Wcp*0
 				noncohe =np.where(module <= tresh)
@@ -162,18 +167,24 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 				if (module[noncohe].shape[0] >  0):
 					Wnp[noncohe]=W1[noncohe]
 					W1n[j,:,:] = W1n[j,:,:]+ Wnp
-					#Gaussian power spectrum with scale power normalisation
-					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2. * a[j]**2.
+					nS1n[j,:,:] = nS1n[j,:,:] + np.abs(Wnp)
+					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2.
 					Wnp=Wnp*0
 				
 	#----------------Wavelet power spectra---------------#
 								
 		if q != 0:
-			S1a[0,j]=np.mean(S11[j,:,:]) * delta / float(N)
-			S1a[1,j]=np.mean(S1c[j,:,:]) * delta / float(N)
-			S1a[2,j]=np.mean(S1n[j,:,:]) * delta / float(N)
+            #Power spectra with scale power normalisation
+			S1a[0,j]=np.mean(S11[j,:,:]) * a[j]**2. * delta / float(N)
+			S1a[1,j]=np.mean(S1c[j,:,:]) * a[j]**2. * delta / float(N)
+			S1a[2,j]=np.mean(S1n[j,:,:]) * a[j]**2. * delta / float(N)
+            
+			S11a[0:M,:,:] = nS11
+			S11a[M:2*M,:,:] = nS1c
+			S11a[2*M:3*M,:,:] = nS1n
 		else:
 			S1a[j]=np.mean(S11[j,:,:]) * delta / float(N)
+			S11a = nS11
 			
 	if q != 0:
 		wtcoeff[0:M,:,:] = wt
@@ -182,4 +193,4 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 	else:
 		wtcoeff = wt
 		
-	return wtcoeff, tab_k, S1a, q
+	return wtcoeff, S11a, wav_k, S1a, q
