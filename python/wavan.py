@@ -1,7 +1,36 @@
 import numpy as np
 from scipy.stats import skew
 
-def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
+def gauss_segmen(coeff, q=2.5, limit=0.,qdyn=False):
+	
+	temoin = np.zeros((coeff.shape[0],coeff.shape[1]))
+	module=np.abs(coeff)
+	tresh=module.max()
+	treshp=module.max()*2.
+
+	while ((treshp-tresh) != 0):
+		tresh=treshp
+		temoin = temoin*0
+		
+		indx=np.where((module <= tresh) & (module > limit))
+		temoin=(module[indx])**2.
+		Sigtresh=np.sum(temoin)/(temoin.shape[0])
+		treshp = q *np.sqrt(Sigtresh)
+					
+		#Adjust q according to the skewness
+		if ((treshp-tresh) == 0) & (qdyn==True):
+			gcoeff =np.where((module <= tresh) & (module > limit))
+			skewn = skew(np.abs(coeff[gcoeff]))
+			if skewn > 0.7:
+				q = q - 0.1
+				treshp = module.max()*2.
+		
+	cohe = np.where(module > tresh)
+	gcoeff = np.where(module <= tresh)
+			
+	return cohe, gcoeff, q
+
+def fan_trans(image, scales=0, reso=1, q=0, limit=0., qdyn=False):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -89,8 +118,6 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 		Wcp = np.zeros((nb,na), dtype=complex)
 		W1n = np.zeros((M,nb,na), dtype=complex)
 		Wnp = np.zeros((nb,na), dtype=complex)
-		temoin = np.zeros((nb,na))
-		module = np.zeros((M,nb,na))
 		S11a = np.zeros((3*M,nb,na))
 		wtcoeff = np.zeros((3*M,nb,na), dtype=complex)
 	else:
@@ -120,6 +147,7 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 			W1FT = imFT * uv
 			W1FT2=np.roll(W1FT,int(ishiftx), axis=1)
 			W1FT2=np.roll(W1FT2,int(ishifty), axis=0)
+			#Wavelet coefficients 
 			W1 = np.fft.ifft2(W1FT2)
 			
 			wt[j,:,:]= wt[j,:,:]+ W1
@@ -127,45 +155,24 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False):
 			S11[j,:,:]= S11[j,:,:] + np.abs(W1)**2. 
 			
 	#----------------Segmentation------------------------#
-	
-			if (q != 0):
+			if q != 0:
 			
-				module=abs(W1)
-				tresh=module.max()
-				treshp=module.max()*2.
+				#Set limit based on the noise level of the original
+				#power spectrum
+		
+				cohe, gcoeff, nq = gauss_segmen(W1, q=q[j], limit=limit, qdyn=True)
+			
+				q[j] = nq
 
-				while ((treshp-tresh) != 0):
-					tresh=treshp
-					temoin = temoin*0
-	
-					indx=np.where(module <= tresh)
-					temoin=(module[indx])**2.
-					Sigtresh=np.sum(temoin)/(temoin.shape[0])
-					treshp = q[j] *np.sqrt(Sigtresh)
-					
-					#Adjust q according to the skewness
-					if ((treshp-tresh) == 0) & (qdyn==True):
-						noncohe =np.where(module <= tresh)
-						skewn = skew(abs(W1[noncohe]))
-						if skewn > 0.7:
-							q[j] = q[j] - 0.1
-							treshp = module.max()*2.
-	
-				tresh=treshp
-				cohe= np.where(module > tresh)
-
-				if (module[cohe].shape[0] > 0):
-
+				if (W1[cohe].shape[0] > 0):
 					Wcp[cohe]=W1[cohe]
 					W1c[j,:,:] = W1c[j,:,:] + Wcp
 					nS1c[j,:,:] = nS1c[j,:,:] + np.abs(Wcp)
 					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
-
 					Wcp=Wcp*0
-				noncohe =np.where(module <= tresh)
 
-				if (module[noncohe].shape[0] >  0):
-					Wnp[noncohe]=W1[noncohe]
+				if (W1[gcoeff].shape[0] >  0):
+					Wnp[gcoeff]=W1[gcoeff]
 					W1n[j,:,:] = W1n[j,:,:]+ Wnp
 					nS1n[j,:,:] = nS1n[j,:,:] + np.abs(Wnp)
 					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2.
