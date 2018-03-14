@@ -1,36 +1,40 @@
 import numpy as np
 from scipy.stats import skew
 
-def gauss_segmen(coeff, q=2.5, limit=0.,qdyn=False):
+def gauss_segmen(coeff, q=2.5, qdyn=False, **kwargs):
 	
 	temoin = np.zeros((coeff.shape[0],coeff.shape[1]))
-	module=np.abs(coeff)
-	tresh=module.max()
-	treshp=module.max()*2.
+	if 'index' in kwargs:
+		module = np.zeros((coeff.shape[0],coeff.shape[1]))
+		module[kwargs.get('index')] = np.abs(coeff[kwargs.get('index')])
+	else:
+		module = np.abs(coeff)
+	tresh = module.max()
+	treshp = module.max()*2.
 
 	while ((treshp-tresh) != 0):
-		tresh=treshp
+		tresh = treshp
 		temoin = temoin*0
 		
-		indx=np.where((module <= tresh) & (module > limit))
-		temoin=(module[indx])**2.
-		Sigtresh=np.sum(temoin)/(temoin.shape[0])
+		indx = np.where((module <= tresh) & (module > 0.))
+		temoin = (module[indx])**2.
+		Sigtresh = np.sum(temoin)/(temoin.shape[0])
 		treshp = q *np.sqrt(Sigtresh)
 					
 		#Adjust q according to the skewness
 		if ((treshp-tresh) == 0) & (qdyn==True):
-			gcoeff =np.where((module <= tresh) & (module > limit))
+			gcoeff = np.where((module <= tresh) & (module > 0.))
 			skewn = skew(np.abs(coeff[gcoeff]))
 			if skewn > 0.7:
 				q = q - 0.1
 				treshp = module.max()*2.
 		
 	cohe = np.where(module > tresh)
-	gcoeff = np.where(module <= tresh)
+	gcoeff = np.where((module <= tresh) & (module > 0))
 			
 	return cohe, gcoeff, q
 
-def fan_trans(image, scales=0, reso=1, q=0, limit=0., qdyn=False):
+def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -108,7 +112,8 @@ def fan_trans(image, scales=0, reso=1, q=0, limit=0., qdyn=False):
 	nS11 = np.zeros((M,nb,na))
 	wt = np.zeros((M,nb,na), dtype=complex)
 
-	if q != 0:
+	if (q != 0) & (('double' not in kwargs) or (kwargs.get('double') == False)):
+		print 'Double is not there!'
 		S1a = np.zeros((3,M))
 		S1c = np.zeros((M,nb,na))
 		S1n = np.zeros((M,nb,na))
@@ -120,7 +125,26 @@ def fan_trans(image, scales=0, reso=1, q=0, limit=0., qdyn=False):
 		Wnp = np.zeros((nb,na), dtype=complex)
 		S11a = np.zeros((3*M,nb,na))
 		wtcoeff = np.zeros((3*M,nb,na), dtype=complex)
+	if ('double' in kwargs) & (kwargs.get('double') == True):
+		S1a = np.zeros((5,M))
+		S1c = np.zeros((M,nb,na))
+		S1c2 = np.zeros((M,nb,na))
+		S1c3 = np.zeros((M,nb,na))
+		S1n = np.zeros((M,nb,na))
+		nS1c = np.zeros((M,nb,na))
+		nS1c2 = np.zeros((M,nb,na))
+		nS1c3 = np.zeros((M,nb,na))
+		nS1n = np.zeros((M,nb,na))
+		W1c = np.zeros((M,nb,na), dtype=complex)
+		W1c2 = np.zeros((M,nb,na), dtype=complex)
+		W1c3 = np.zeros((M,nb,na), dtype=complex)
+		Wcp = np.zeros((nb,na), dtype=complex)
+		W1n = np.zeros((M,nb,na), dtype=complex)
+		Wnp = np.zeros((nb,na), dtype=complex)
+		S11a = np.zeros((5*M,nb,na))
+		wtcoeff = np.zeros((5*M,nb,na), dtype=complex)
 	else:
+		print 'No segmentation'
 		S1a = np.zeros(M)
 		S11a = np.zeros((M,nb,na))
 		wtcoeff = np.zeros((M,nb,na), dtype=complex)
@@ -160,23 +184,42 @@ def fan_trans(image, scales=0, reso=1, q=0, limit=0., qdyn=False):
 				#Set limit based on the noise level of the original
 				#power spectrum
 		
-				cohe, gcoeff, nq = gauss_segmen(W1, q=q[j], limit=limit, qdyn=True)
+				cohe, gcoeff, nq = gauss_segmen(W1, q=q[j], qdyn=True)
 			
-				q[j] = nq
 
 				if (W1[cohe].shape[0] > 0):
 					Wcp[cohe]=W1[cohe]
 					W1c[j,:,:] = W1c[j,:,:] + Wcp
 					nS1c[j,:,:] = nS1c[j,:,:] + np.abs(Wcp)
 					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
-					Wcp=Wcp*0
+					Wcp=Wcp*0.
 
 				if (W1[gcoeff].shape[0] >  0):
 					Wnp[gcoeff]=W1[gcoeff]
 					W1n[j,:,:] = W1n[j,:,:]+ Wnp
 					nS1n[j,:,:] = nS1n[j,:,:] + np.abs(Wnp)
 					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2.
-					Wnp=Wnp*0
+					Wnp=Wnp*0.
+					
+				if ('double' in kwargs) & (kwargs.get('double') == True) &\
+				(W1[cohe].shape[0] > 0):
+					#Second iteration of segmentation on non-Gaussiannities\
+					#only (coherent part)
+					cohe3, cohe2, coheq = gauss_segmen(W1, q=q[j], qdyn=True,\
+													   index=cohe)
+					Wcp[cohe2]=W1[cohe2]
+					W1c2[j,:,:] = W1c2[j,:,:] + Wcp
+					nS1c2[j,:,:] = nS1c2[j,:,:] + np.abs(Wcp)
+					S1c2[j,:,:] = S1c2[j,:,:] + np.abs(Wcp)**2.
+					Wcp=Wcp*0.
+					
+					Wcp[cohe3]=W1[cohe3]
+					W1c3[j,:,:] = W1c3[j,:,:] + Wcp
+					nS1c3[j,:,:] = nS1c3[j,:,:] + np.abs(Wcp)
+					S1c3[j,:,:] = S1c3[j,:,:] + np.abs(Wcp)**2.
+					Wcp=Wcp*0.
+					
+				q[j] = nq
 				
 	#----------------Wavelet power spectra---------------#
 								
@@ -189,6 +232,14 @@ def fan_trans(image, scales=0, reso=1, q=0, limit=0., qdyn=False):
 			S11a[0:M,:,:] = nS11
 			S11a[M:2*M,:,:] = nS1c
 			S11a[2*M:3*M,:,:] = nS1n
+			
+			if ('double' in kwargs) & (kwargs.get('double') == True):
+				S1a[3,j]=np.mean(S1c2[j,:,:]) * a[j]**2. * delta / float(N)
+				S1a[4,j]=np.mean(S1c3[j,:,:]) * a[j]**2. * delta / float(N)
+            
+				S11a[3*M:4*M,:,:] = nS1c2
+				S11a[4*M:5*M,:,:] = nS1c3
+				
 		else:
 			S1a[j]=np.mean(S11[j,:,:]) * delta / float(N)
 			S11a = nS11
@@ -197,6 +248,9 @@ def fan_trans(image, scales=0, reso=1, q=0, limit=0., qdyn=False):
 		wtcoeff[0:M,:,:] = wt
 		wtcoeff[M:2*M,:,:] = W1c
 		wtcoeff[2*M:3*M,:,:] = W1n
+		if ('double' in kwargs) & (kwargs.get('double') == True):
+			wtcoeff[3*M:4*M,:,:] = W1c2
+			wtcoeff[4*M:5*M,:,:] = W1c3
 	else:
 		wtcoeff = wt
 		
