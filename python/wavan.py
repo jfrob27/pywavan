@@ -234,11 +234,11 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 			S11a[2*M:3*M,:,:] = nS1n
 			
 			if ('double' in kwargs) & (kwargs.get('double') == True):
-				S1a[3,j]=np.mean(S1c2[j,:,:]) * a[j]**2. * delta / float(N)
-				S1a[4,j]=np.mean(S1c3[j,:,:]) * a[j]**2. * delta / float(N)
+				S1a[3,j]=np.mean(S1c3[j,:,:]) * a[j]**2. * delta / float(N)
+				S1a[4,j]=np.mean(S1c2[j,:,:]) * a[j]**2. * delta / float(N)
             
-				S11a[3*M:4*M,:,:] = nS1c2
-				S11a[4*M:5*M,:,:] = nS1c3
+				S11a[3*M:4*M,:,:] = nS1c3
+				S11a[4*M:5*M,:,:] = nS1c2
 				
 		else:
 			S1a[j]=np.mean(S11[j,:,:]) * delta / float(N)
@@ -249,8 +249,8 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 		wtcoeff[M:2*M,:,:] = W1c
 		wtcoeff[2*M:3*M,:,:] = W1n
 		if ('double' in kwargs) & (kwargs.get('double') == True):
-			wtcoeff[3*M:4*M,:,:] = W1c2
-			wtcoeff[4*M:5*M,:,:] = W1c3
+			wtcoeff[3*M:4*M,:,:] = W1c3
+			wtcoeff[4*M:5*M,:,:] = W1c2
 	else:
 		wtcoeff = wt
 		
