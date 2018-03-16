@@ -1,1 +1,0 @@
-PYWAVAN is a python library to perform wavelet analysis
