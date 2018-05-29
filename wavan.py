@@ -33,6 +33,8 @@ def gauss_segmen(coeff, q=2.5, qdyn=False, **kwargs):
 	gcoeff = np.where((module <= tresh) & (module > 0))
 			
 	return cohe, gcoeff, q
+	
+###############################################
 
 def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 	'''
@@ -77,10 +79,10 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 			a2[i+1]=a2[i]-delta
 
 		a2=np.exp(a2)
-		wav_k = 1. / a2
+		wav_k = 1. / (a2 * reso)
 	else:
-		wav_k = scales * reso
-		a2 = 1. / scales
+		wav_k = scales
+		a2 = 1. / (scales * reso)
 		M = scales.size
 		
 	#-----------------UV-Plane--------------#
@@ -174,33 +176,13 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2.
 					Wnp=Wnp*0.
 					
-				if ('double' in kwargs) & (kwargs.get('double') == True) &\
-				(W1[cohe].shape[0] > 0):
-					#Second iteration of segmentation on non-Gaussiannities\
-					#only (coherent part)
-					
-					cohe2, gcoeff2, coheq = gauss_segmen(W1, q=1.9,\
-														 qdyn=False,index=cohe)
-					
-					Wnp[gcoeff2]=W1[gcoeff2]
-					W1n[j,:,:] = W1n[j,:,:]+ Wnp
-					nS1n[j,:,:] = nS1n[j,:,:] + np.abs(Wnp)
-					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2.
-					Wnp=Wnp*0.
-					
-					Wcp[cohe2]=W1[cohe2]
+				
+				if (W1[cohe].shape[0] > 0):
+					Wcp[cohe]=W1[cohe]
 					W1c[j,:,:] = W1c[j,:,:] + Wcp
 					nS1c[j,:,:] = nS1c[j,:,:] + np.abs(Wcp)
 					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
 					Wcp=Wcp*0.
-					
-				else:
-					if (W1[cohe].shape[0] > 0):
-						Wcp[cohe]=W1[cohe]
-						W1c[j,:,:] = W1c[j,:,:] + Wcp
-						nS1c[j,:,:] = nS1c[j,:,:] + np.abs(Wcp)
-						S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
-						Wcp=Wcp*0.
 					
 				q[j] = nq
 				
@@ -212,13 +194,17 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 			S1a[1,j]=np.mean(S1c[j,:,:]) * a[j]**2. * delta / float(N)
 			S1a[2,j]=np.mean(S1n[j,:,:]) * a[j]**2. * delta / float(N)
             
-			S11a[0:M,:,:] = nS11
-			S11a[M:2*M,:,:] = nS1c
-			S11a[2*M:3*M,:,:] = nS1n
+			#S11a[0:M,:,:] = nS11
+			#S11a[M:2*M,:,:] = nS1c
+			#S11a[2*M:3*M,:,:] = nS1n
+			
+			S11a[j,:,:] = S11[j,:,:] * a[j]**2. * delta / float(N)
+			S11a[M+j,:,:] = S1c[j,:,:] * a[j]**2. * delta / float(N)
+			S11a[2*M+j,:,:] = S1n[j,:,:] * a[j]**2. * delta / float(N)
 				
 		else:
-			S1a[j]=np.mean(S11[j,:,:]) * delta / float(N)
-			S11a = nS11
+			S1a[j]=np.mean(S11[j,:,:]) * a[j]**2. * delta / float(N)
+			S11a = S11
 			
 	if q != 0:
 		wtcoeff[0:M,:,:] = wt
@@ -228,3 +214,50 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 		wtcoeff = wt
 		
 	return wtcoeff, S11a, wav_k, S1a, q
+	
+###############################################
+	
+def apodize(nx, ny, radius):
+	"""
+	Create edges apodization tapper
+
+	Parameters
+	----------
+	nx, ny : integers
+		size of the tapper
+	radius : float
+		radius must be lower than 1 and greater than 0.
+
+	Returns
+	-------
+
+	tapper : numpy array ready to multiply on your image
+				to apodize edges
+	"""
+	
+	if (radius >= 1) or (radius <= 0.):
+		print('Error: radius must be lower than 1 and greater than 0.')
+		return
+	
+	ni = np.fix(radius*nx)
+	dni = int(nx-ni)
+	nj = np.fix(radius*ny)
+	dnj = int(ny-nj)
+	
+	tap1d_x = np.ones(nx)
+	tap1d_y = np.ones(ny)
+	
+	tap1d_x[0:dni] = (np.cos(3. * np.pi/2. + np.pi/2.* (1.* np.arange(dni)/(dni-1)) ))
+	tap1d_x[nx-dni:] = (np.cos(0. + np.pi/2. * (1.* np.arange(dni)/(dni-1)) ))
+	tap1d_y[0:dnj] = (np.cos(3. * np.pi/2. + np.pi/2. * (1.* np.arange( dnj )/(dnj-1)) ))
+	tap1d_y[ny-dnj:] = (np.cos(0. + np.pi/2. * (1.* np.arange(dnj)/(dnj-1)) ))
+	
+	tapper = np.zeros((ny, nx))
+	
+	for i in range(nx):
+		tapper[:,i] = tap1d_y
+		
+	for i in range(ny):
+		tapper[i,:] = tapper[i,:] * tap1d_x
+
+	return tapper
