@@ -4,11 +4,8 @@ from scipy.stats import skew
 def gauss_segmen(coeff, q=2.5, qdyn=False, **kwargs):
 	
 	temoin = np.zeros((coeff.shape[0],coeff.shape[1]))
-	if 'index' in kwargs:
-		module = np.zeros((coeff.shape[0],coeff.shape[1]))
-		module[kwargs.get('index')] = np.abs(coeff[kwargs.get('index')])
-	else:
-		module = np.abs(coeff)
+	
+	module = np.abs(coeff)
 	tresh = module.max()
 	treshp = module.max()*2.
 
@@ -217,7 +214,7 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 	
 ###############################################
 	
-def apodize(nx, ny, radius):
+def apodize(ny, nx, radius):
 	"""
 	Create edges apodization tapper
 
@@ -261,3 +258,35 @@ def apodize(nx, ny, radius):
 		tapper[i,:] = tapper[i,:] * tap1d_x
 
 	return tapper
+	
+###############################################
+	
+def padding(input, y, x):
+
+	width = input.shape[1]
+	height = input.shape[0]
+
+	output = np.zeros((y,x))
+	
+	xpos = np.int(x/2 - width/2)
+	ypos = np.int(y/2 - height/2)
+	
+	output[ypos:height+ypos,xpos:width+xpos] = input
+	
+	return output
+	
+###############################################
+
+def depad(input, y, x):
+
+	width = input.shape[1]
+	height = input.shape[0]
+	
+	output = np.zeros((y,x))
+	
+	xpos = np.int(width/2 - x/2)
+	ypos = np.int(height/2 - y/2)
+	
+	output = input[ypos:y+ypos,xpos:x+xpos]
+	
+	return output
