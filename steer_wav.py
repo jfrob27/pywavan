@@ -1,18 +1,11 @@
 import numpy as np
-from astropy.io import fits
 from wavan import uv_plane
 
-def steer_trans(im,Nite=2):
+def steer_wav(na,nb,Nite=2):
 
-	#figfile = '/Users/robitaij/postdoc/Herschel/W43_density_galcut_nan.fits'
-	#HDU = fits.open(figfile)
-	#im = HDU[0].data
-	#Nite = 6
 	N=11            #Number of directions (odd)
 
 	#--------------------Definitions----------------------#
-	na = im.shape[1]
-	nb = im.shape[0]
 
 	x, y, shiftx, shifty, ishiftx, ishifty = uv_plane(na, nb)
 	x *= na/2.
@@ -161,12 +154,31 @@ def steer_trans(im,Nite=2):
 
 	steer = np.zeros((Nite,N,nb,na), dtype=complex)
 
+	
+
+	return H0, L0, Hi, Li, Gk
+	
+###############################################
+	
+def steer_trans(im,Nite=2):
+
+	N=11            #Number of directions (odd)
+	
+	na = im.shape[1]
+	nb = im.shape[0]
+	imFT = np.fft.fft2(im)
+	
+	x, y, shiftx, shifty, ishiftx, ishifty = uv_plane(na, nb)
+	del x, y, shiftx, shifty
+	
+	#Create steerable filters
+	H0, L0, Hi, Li, Gk = steer_wav(na,nb,Nite=Nite)
+	
 	#High-pass filter
 	#--------------------
 
 	uvWav = np.copy(H0)
 
-	imFT = np.fft.fft2(im)
 	uvplan = np.roll(uvWav,int(ishiftx), axis=1)
 	uvplan = np.roll(uvplan,int(ishifty), axis=0)
 	WimFT = imFT*np.conj(uvplan)
@@ -183,10 +195,12 @@ def steer_trans(im,Nite=2):
 	uvplan = np.roll(uvplan,int(ishifty), axis=0)
 	WimFT = imFT * np.conj(uvplan)
 	Sclim = np.fft.ifft2(WimFT)
-
+	
 	#Steerable wavelets
 	#--------------------
-
+	
+	steer = np.zeros((Nite,N,nb,na), dtype=complex)
+	
 	for ite in range(Nite):
 
 		for j in range(N):
@@ -202,5 +216,76 @@ def steer_trans(im,Nite=2):
 			uvplan = np.roll(uvplan,int(ishifty), axis=0)
 			WimFT = imFT * np.conj(uvplan)
 			steer[ite,j,:,:] = np.fft.ifft2(WimFT)
+			
+	return steer,Him,Sclim
+	
+###############################################
+	
+def steer_inv(steer,Him,Sclim):
+	
+	N=11            #Number of directions (odd)
+	
+	na = Him.shape[1]
+	nb = Him.shape[0]
+	Nite = steer.shape[0]
+	imagetot = np.zeros((nb,na), dtype=complex)
+	
+	x, y, shiftx, shifty, ishiftx, ishifty = uv_plane(na, nb)
+	del x, y, shiftx, shifty
+	
+	#Create steerable filters
+	H0, L0, Hi, Li, Gk = steer_wav(na,nb,Nite=Nite)
+	
+	#High-pass filter
+	#--------------------
 
-	return steer,Him,Sclim	
+	uvWav = np.copy(H0)
+
+	imFT = np.fft.fft2(Him)
+	uvplan = np.roll(uvWav,int(ishiftx), axis=1)
+	uvplan = np.roll(uvplan,int(ishifty), axis=0)
+	Himconv = imFT * uvplan
+	
+	imagetot = Himconv
+
+	#Scaling filter
+	#--------------------
+
+	Scal = Li[Nite-1,:,:]
+
+	uvWav = Scal/2.
+
+	imFT = np.fft.fft2(Sclim)
+	uvplan = np.roll(uvWav,int(ishiftx), axis=1)
+	uvplan = np.roll(uvplan,int(ishifty), axis=0)
+	Sclimconv = imFT * uvplan
+
+	imagetot += Sclimconv
+	
+	#Steerable wavelets
+	#--------------------
+
+	for ite in range(Nite):
+
+		for j in range(N):
+
+			if ite == 0:
+				Bp = Hi[0,:,:] * L0/2.
+			else:
+				Bp = Hi[ite,:,:] * Li[ite-1,:,:]
+
+			uvWav = Bp * Gk[j,:,:]
+
+			imFT = np.fft.fft2(steer[ite,j,:,:])
+			uvplan = np.roll(uvWav,int(ishiftx), axis=1)
+			uvplan = np.roll(uvplan,int(ishifty), axis=0)
+			steerconv = imFT * uvplan
+
+			imagetot += steerconv
+			
+	imout = np.fft.ifft2(imagetot).real
+
+	return imout
+
+
+

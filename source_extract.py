@@ -23,17 +23,19 @@ a = ko/tab_k
 M = tab_k.shape[0]
 wtalt = np.zeros((M,im.shape[0],im.shape[1]))
 
-start = 13
+start = 9
+end = 22
 wtalt[0:start,:,:] = wt[0:start,:,:]
+wtalt[end:M,:,:] = wt[end:M,:,:]
 
-for i in range(start,M):	
+for i in range(start,end):	
 
 	Walt = np.copy(wt[i,:,:])
 
 	valmax = np.max(Walt)
 	indmax = np.where(Walt == valmax)
 
-	while Walt[indmax]/np.std(wt[i,:,:]) > 10.:
+	while Walt[indmax]/np.std(wt[i,:,:]) > 5.:
 		
 		model[indmax] = 1.
 		
