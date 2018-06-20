@@ -174,11 +174,24 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 	
 	nao = np.copy(na)
 	nbo = np.copy(nb)
+		
+	#--------------Apodization--------------------#
 	
+	if 'apodize' in kwargs:
+		tapper = apodize(nb,na,kwargs.get('apodize'))
+		image = image *tapper
+		
+	if 'arrdim' in kwargs:
+		arrdim = kwargs.get('arrdim')
+		na = arrdim[1]
+		nb = arrdim[0]
+		image = padding(image,arrdim[0],arrdim[1])
+		print na,nb
+		
 	#--------------Spectral Logarithm--------------------#
 	
 	if scales == 0:
-		nx = np.max(image.shape)
+		nx = np.max(np.array([na,nb]))
 		
 		M=int(np.log(nx)/delta)
 		a2=np.zeros(M)
@@ -193,18 +206,6 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 		wav_k = scales
 		a2 = 1. / (scales * reso)
 		M = scales.size
-		
-	#--------------Apodization--------------------#
-	
-	if 'apodize' in kwargs:
-		tapper = apodize(nb,na,kwargs.get('apodize'))
-		image = image *tapper
-		
-	if 'arrdim' in kwargs:
-		arrdim = kwargs.get('arrdim')
-		na = arrdim[1]
-		nb = arrdim[0]
-		image = padding(image,arrdim[0],arrdim[1])
 		
 	#-----------------UV-Plane--------------#
 	

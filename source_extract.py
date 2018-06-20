@@ -4,7 +4,7 @@ import numpy as np
 from wavan import uv_plane
 from halo_transform import halo_transform
 
-figfile = '/Users/robitaij/postdoc/Herschel/Ken_Marsh/CygnusX-DR21_l081_cdens_cut_nan.fits'
+figfile = '/Users/robitaij/postdoc/Herschel/Ken_Marsh/CMa_R1_cut_nan.fits'
 
 #Read map
 HDU = fits.open(figfile)
@@ -23,8 +23,8 @@ a = ko/tab_k
 M = tab_k.shape[0]
 wtalt = np.zeros((M,im.shape[0],im.shape[1]))
 
-start = 9
-end = 22
+start = 4
+end = 24
 wtalt[0:start,:,:] = wt[0:start,:,:]
 wtalt[end:M,:,:] = wt[end:M,:,:]
 
@@ -77,5 +77,5 @@ rec = np.sum(wtalt,axis=0)
 #plt.subplot(122)
 #plt.imshow(Walt,origin='below',cmap='gray')
 
-fits.writeto("/Users/robitaij/postdoc/Herschel/Ken_Marsh/analysis/CygnusX-DR21_alt.fits",rec,header,overwrite=True)
-fits.writeto("/Users/robitaij/postdoc/Herschel/Ken_Marsh/analysis/CygnusX-DR21_model.fits",modmap,header,overwrite=True)
+fits.writeto("/Users/robitaij/postdoc/Herschel/Ken_Marsh/analysis/CMa_R1_scr_ext.fits",rec,header,overwrite=True)
+fits.writeto("/Users/robitaij/postdoc/Herschel/Ken_Marsh/analysis/CMa_R1_model.fits",modmap,header,overwrite=True)

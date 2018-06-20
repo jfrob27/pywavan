@@ -45,14 +45,14 @@ def steer_wav(na,nb,Nite=2):
 		#Delete reflection
 		#-------------------
 
-		if (j >= 0) & (j <= 2):
-			Gkt[0:nb,0:na/2] = 0.
+		#if (j >= 0) & (j <= 2):
+		#	Gkt[0:nb,0:na/2] = 0.
 
-		if (j > 2) and (j < 9):
-			Gkt[0:nb/2,0:na] = 0.
+		#if (j > 2) and (j < 9):
+		#	Gkt[0:nb/2,0:na] = 0.
 
-		if j >= 9:
-			Gkt[0:nb,(na/2)-1:na] = 0.
+		#if j >= 9:
+		#	Gkt[0:nb,(na/2)-1:na] = 0.
 
 		#-------------------
 
@@ -148,21 +148,13 @@ def steer_wav(na,nb,Nite=2):
 		Lit = Lit * 0.
 		Hit = Hit * 0.
 
-	#-----------------------------------------
-	#Wavelet transform
-	#-----------------------------------------
-
-	steer = np.zeros((Nite,N,nb,na), dtype=complex)
-
-	
-
 	return H0, L0, Hi, Li, Gk
 	
 ###############################################
 	
 def steer_trans(im,Nite=2):
 
-	N=11            #Number of directions (odd)
+	N=10            #Number of directions (odd)
 	
 	na = im.shape[1]
 	nb = im.shape[0]
@@ -223,7 +215,7 @@ def steer_trans(im,Nite=2):
 	
 def steer_inv(steer,Him,Sclim):
 	
-	N=11            #Number of directions (odd)
+	N=10            #Number of directions (odd)
 	
 	na = Him.shape[1]
 	nb = Him.shape[0]
@@ -270,9 +262,9 @@ def steer_inv(steer,Him,Sclim):
 		for j in range(N):
 
 			if ite == 0:
-				Bp = Hi[0,:,:] * L0/2.
+				Bp = Hi[0,:,:] * L0
 			else:
-				Bp = Hi[ite,:,:] * Li[ite-1,:,:]
+				Bp = Hi[ite,:,:] * Li[ite-1,:,:]/2.
 
 			uvWav = Bp * Gk[j,:,:]
 
@@ -286,6 +278,3 @@ def steer_inv(steer,Him,Sclim):
 	imout = np.fft.ifft2(imagetot).real
 
 	return imout
-
-
-
