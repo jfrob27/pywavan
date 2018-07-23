@@ -6,4 +6,4 @@ def ind_var(x);
 	
 def covar(h,w):
 	n = len(h)
-	return np.dot(ind_var(h),ind_var(w)/(n-1)
+	return np.dot(ind_var(h),ind_var(w))/(n-1)
