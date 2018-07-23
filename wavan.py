@@ -142,7 +142,7 @@ def gauss_segmen(coeff, q=2.5, qdyn=False, **kwargs):
 	
 ###############################################
 
-def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
+def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, pownorm=True, **kwargs):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -292,24 +292,44 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, **kwargs):
 				q[j] = nq
 				
 	#----------------Wavelet power spectra---------------#
-								
-		if q != 0:
-            #Power spectra with scale power normalisation
-			S1a[0,j]=np.sum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
-			S1a[1,j]=np.sum(S1c[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
-			S1a[2,j]=np.sum(S1n[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
+		
+		if pownorm==True:
+			if q != 0:
+				#Power spectra with scale power normalisation
+				S1a[0,j]=np.sum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
+				S1a[1,j]=np.sum(S1c[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
+				S1a[2,j]=np.sum(S1n[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
             
-			#S11a[0:M,:,:] = nS11
-			#S11a[M:2*M,:,:] = nS1c
-			#S11a[2*M:3*M,:,:] = nS1n
+				#S11a[0:M,:,:] = nS11
+				#S11a[M:2*M,:,:] = nS1c
+				#S11a[2*M:3*M,:,:] = nS1n
 			
-			S11a[j,:,:] = S11[j,:,:] * a[j]**2. * delta / float(N)
-			S11a[M+j,:,:] = S1c[j,:,:] * a[j]**2. * delta / float(N)
-			S11a[2*M+j,:,:] = S1n[j,:,:] * a[j]**2. * delta / float(N)
+				S11a[j,:,:] = S11[j,:,:] * a[j]**2. * delta / float(N)
+				S11a[M+j,:,:] = S1c[j,:,:] * a[j]**2. * delta / float(N)
+				S11a[2*M+j,:,:] = S1n[j,:,:] * a[j]**2. * delta / float(N)
 				
+			else:
+				S1a[j]=np.sum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
+				S11a = S11
 		else:
-			S1a[j]=np.sum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
-			S11a = S11
+			if q != 0:
+				#Power spectra with scale power normalisation
+				S1a[0,j]=np.sum(S11[j,:,:]) * delta / (float(N) * na * nb)
+				S1a[1,j]=np.sum(S1c[j,:,:]) * delta / (float(N) * na * nb)
+				S1a[2,j]=np.sum(S1n[j,:,:]) * delta / (float(N) * na * nb)
+            
+				#S11a[0:M,:,:] = nS11
+				#S11a[M:2*M,:,:] = nS1c
+				#S11a[2*M:3*M,:,:] = nS1n
+			
+				S11a[j,:,:] = S11[j,:,:] * delta / float(N)
+				S11a[M+j,:,:] = S1c[j,:,:] * delta / float(N)
+				S11a[2*M+j,:,:] = S1n[j,:,:] * delta / float(N)
+				
+			else:
+				S1a[j]=np.sum(S11[j,:,:]) * delta / (float(N) * na * nb)
+				S11a = S11
+		
 			
 	if q != 0:
 		wtcoeff[0:M,:,:] = wt
