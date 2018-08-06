@@ -1,5 +1,7 @@
 import numpy as np
 from scipy.stats import skew
+from rebin import congrid
+from imsmooth import imsmooth
 
 ###############################################
 
@@ -110,7 +112,56 @@ def uv_plane(na, nb):
 	
 ###############################################
 
-def gauss_segmen(coeff, q=2.5, qdyn=False, **kwargs):
+def downsample(coeff, scl, reso):
+	
+	ko= 5.336
+	nxbin = np.round(ko * coeff.shape[1] * scl *reso)
+	nybin = np.round(ko * coeff.shape[0] * scl *reso)
+	
+	coefbin = congrid(coeff,(nybin,nxbin),method='linear',centre=True)
+	
+	return coefbin
+	
+###############################################
+
+def rescale(coefbin, scl, newsize, reso):
+	
+	ko= 5.336
+	ratio0 = newsize[0]/coefbin.shape[0]+1
+	ratio1 = newsize[1]/coefbin.shape[1]+1
+	
+	#Resize the pixelated image with more pixels with function repeat
+	#Assign a specific number of pixels with congrid
+	coefrsz = congrid(np.repeat(np.repeat(coefbin,ratio0,axis=0),ratio1,axis=1),newsize,method='linear',centre=True)
+	#coefrsz = np.repeat(np.repeat(coefbin,ratio0,axis=0),ratio1,axis=1)
+	
+	# Shift to counter part
+	coefrsz = np.roll(coefrsz,-np.int(ratio1/2.), axis=1)
+	coefrsz = np.roll(coefrsz,-np.int(ratio0/2.), axis=0)
+	
+	#Smooth image with the Gaussian envelop of the wavelet
+	a = 1. / (scl*reso)
+	x, y, shiftx, shifty, ishiftx, ishifty = uv_plane(coefrsz.shape[1], coefrsz.shape[0])
+	r = np.sqrt(x**2. + y**2.)
+	
+	kernel = (np.pi/2.)*np.exp(-.5*(r*a)**2.)
+	
+	
+	coefrszFT = np.fft.fft2(coefrsz)
+	coefrszFT= np.roll(coefrszFT,int(shiftx), axis=1)
+	coefrszFT= np.roll(coefrszFT,int(shifty), axis=0)
+	
+	smoothFT = coefrszFT * kernel
+	
+	smoothFT2=np.roll(smoothFT,int(ishiftx), axis=1)
+	smoothFT2=np.roll(smoothFT2,int(ishifty), axis=0) 
+	smooth = np.fft.ifft2(smoothFT2)
+	
+	return smooth.real
+	
+###############################################
+
+def gauss_segmen(coeff, q=2.5, qdyn=False, skewl=0.4):
 	
 	temoin = np.zeros((coeff.shape[0],coeff.shape[1]))
 	
@@ -131,7 +182,7 @@ def gauss_segmen(coeff, q=2.5, qdyn=False, **kwargs):
 		if ((treshp-tresh) == 0) & (qdyn==True):
 			gcoeff = np.where((module <= tresh) & (module > 0.))
 			skewn = skew(np.abs(coeff[gcoeff]))
-			if skewn > 0.7:
+			if skewn > skewl:
 				q = q - 0.1
 				treshp = module.max()*2.
 		
@@ -142,7 +193,7 @@ def gauss_segmen(coeff, q=2.5, qdyn=False, **kwargs):
 	
 ###############################################
 
-def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, pownorm=True, **kwargs):
+def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=True, **kwargs):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -190,7 +241,13 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, pownorm=True, **kwargs):
 		
 	#--------------Spectral Logarithm--------------------#
 	
-	if scales == 0:
+	if 'scales' in kwargs:
+		scales = kwargs.get('scales')
+		wav_k = scales
+		a2 = 1. / (scales * reso)
+		M = scales.size
+	
+	else:
 		nx = np.max(np.array([na,nb]))
 		
 		M=int(np.log(nx)/delta)
@@ -202,37 +259,40 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, pownorm=True, **kwargs):
 
 		a2=np.exp(a2)
 		wav_k = 1. / (a2 * reso)
-	else:
-		wav_k = scales
-		a2 = 1. / (scales * reso)
-		M = scales.size
 		
 	#-----------------UV-Plane--------------#
 	
 	x, y, shiftx, shifty, ishiftx, ishifty = uv_plane(na, nb)
 
 	#-----------------Variables--------------#
-
-	S11 = np.zeros((M,nbo,nao))
-	nS11 = np.zeros((M,nbo,nao))
-	wt = np.zeros((M,nbo,nao), dtype=complex)
+	
+	if cutpad == True:
+		sx = nao
+		sy = nbo
+	else:
+		sx = na
+		sy = nb
+		
+	S11 = np.zeros((M,sy,sx))
+	nS11 = np.zeros((M,sy,sx))
+	wt = np.zeros((M,sy,sx), dtype=complex)
 
 	if (q != 0):
 		S1a = np.zeros((3,M))
-		S1c = np.zeros((M,nbo,nao))
-		S1n = np.zeros((M,nbo,nao))
-		nS1c = np.zeros((M,nbo,nao))
-		nS1n = np.zeros((M,nbo,nao))
-		W1c = np.zeros((M,nbo,nao), dtype=complex)
-		Wcp = np.zeros((nbo,nao), dtype=complex)
-		W1n = np.zeros((M,nbo,nao), dtype=complex)
-		Wnp = np.zeros((nbo,nao), dtype=complex)
-		S11a = np.zeros((3*M,nbo,nao))
-		wtcoeff = np.zeros((3*M,nbo,nao), dtype=complex)
+		S1c = np.zeros((M,sy,sx))
+		S1n = np.zeros((M,sy,sx))
+		nS1c = np.zeros((M,sy,sx))
+		nS1n = np.zeros((M,sy,sx))
+		W1c = np.zeros((M,sy,sx), dtype=complex)
+		#Wcp = np.zeros((sy,sx), dtype=complex)
+		W1n = np.zeros((M,sy,sx), dtype=complex)
+		#Wnp = np.zeros((sy,sx), dtype=complex)
+		S11a = np.zeros((3*M,sy,sx))
+		wtcoeff = np.zeros((3*M,sy,sx), dtype=complex)
 	else:
 		S1a = np.zeros(M)
-		S11a = np.zeros((M,nbo,nao))
-		wtcoeff = np.zeros((M,nbo,nao), dtype=complex)
+		S11a = np.zeros((M,sy,sx))
+		wtcoeff = np.zeros((M,sy,sx), dtype=complex)
 	
 	a = ko * a2				#Scales in the wavelet space
 	N = int(np.pi/delta)	#Number of orientation for the Morlet wavelet
@@ -258,7 +318,7 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, pownorm=True, **kwargs):
 			W1FT2=np.roll(W1FT2,int(ishifty), axis=0)
 			#Wavelet coefficients 
 			W1 = np.fft.ifft2(W1FT2)
-			if 'arrdim' in kwargs:
+			if ('arrdim' in kwargs) & (cutpad == True):
 				W1 = depad(W1,nbo,nao)
 			
 			wt[j,:,:]= wt[j,:,:]+ W1
@@ -270,12 +330,21 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, pownorm=True, **kwargs):
 			
 				#Set limit based on the noise level of the original
 				#power spectrum
+				
+				if (j > 2) & (j <= 6):
+					W1 = downsample(W1, wav_k[j], reso)
 		
-				cohe, gcoeff, nq = gauss_segmen(W1, q=q[j], qdyn=qdyn)
+				cohe, gcoeff, nq = gauss_segmen(W1, q=q[j], qdyn=qdyn, skewl=skewl)
 			
 
 				if (W1[gcoeff].shape[0] >  0):
-					Wnp[gcoeff]=W1[gcoeff]
+					if (j > 2) & (j <= 6):
+						Wnp = np.zeros(W1.shape, dtype=complex)
+						Wnp[gcoeff]=W1[gcoeff]
+						Wnp = rescale(Wnp,wav_k[j],(sy,sx),reso)
+					else:
+						Wnp = np.zeros((sy,sx), dtype=complex)
+						Wnp[gcoeff]=W1[gcoeff]
 					W1n[j,:,:] = W1n[j,:,:]+ Wnp
 					nS1n[j,:,:] = nS1n[j,:,:] + np.abs(Wnp)
 					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2.
@@ -283,7 +352,13 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, pownorm=True, **kwargs):
 					
 				
 				if (W1[cohe].shape[0] > 0):
-					Wcp[cohe]=W1[cohe]
+					if (j > 2) & (j <= 6):
+						Wcp = np.zeros(W1.shape, dtype=complex)
+						Wcp[cohe]=W1[cohe]
+						Wcp = rescale(Wcp,wav_k[j],(sy,sx),reso)
+					else:
+						Wcp = np.zeros((sy,sx), dtype=complex)
+						Wcp[cohe]=W1[cohe]
 					W1c[j,:,:] = W1c[j,:,:] + Wcp
 					nS1c[j,:,:] = nS1c[j,:,:] + np.abs(Wcp)
 					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
