@@ -136,13 +136,13 @@ def rescale(coefbin, scl, newsize, reso):
 	#coefrsz = np.repeat(np.repeat(coefbin,ratio0,axis=0),ratio1,axis=1)
 	
 	# Shift to counter part
-	coefrsz = np.roll(coefrsz,-np.int(ratio1/2.), axis=1)
-	coefrsz = np.roll(coefrsz,-np.int(ratio0/2.), axis=0)
+	coefrsz = np.roll(coefrsz,-np.int(ratio1)/4, axis=1)
+	coefrsz = np.roll(coefrsz,-np.int(ratio0)/4, axis=0)
 	
 	#Smooth image with the Gaussian envelop of the wavelet
 	a = 1. / (scl*reso)
-	x, y, shiftx, shifty, ishiftx, ishifty = uv_plane(coefrsz.shape[1], coefrsz.shape[0])
-	r = np.sqrt(x**2. + y**2.)
+	u, v, shiftx, shifty, ishiftx, ishifty = uv_plane(coefrsz.shape[1], coefrsz.shape[0])
+	r = np.sqrt(u**2. + v**2.)
 	
 	kernel = (np.pi/2.)*np.exp(-.5*(r*a)**2.)
 	
@@ -388,7 +388,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 				S11a = S11
 		else:
 			if q != 0:
-				#Power spectra with scale power normalisation
+				#Power spectra without scale power normalisation
 				S1a[0,j]=np.sum(S11[j,:,:]) * delta / (float(N) * na * nb)
 				S1a[1,j]=np.sum(S1c[j,:,:]) * delta / (float(N) * na * nb)
 				S1a[2,j]=np.sum(S1n[j,:,:]) * delta / (float(N) * na * nb)
