@@ -112,55 +112,6 @@ def uv_plane(na, nb):
 	
 ###############################################
 
-def downsample(coeff, scl, reso):
-	
-	ko= 5.336
-	nxbin = np.round(ko * coeff.shape[1] * scl *reso)
-	nybin = np.round(ko * coeff.shape[0] * scl *reso)
-	
-	coefbin = congrid(coeff,(nybin,nxbin),method='linear',centre=True)
-	
-	return coefbin
-	
-###############################################
-
-def rescale(coefbin, scl, newsize, reso):
-	
-	ko= 5.336
-	ratio0 = newsize[0]/coefbin.shape[0]+1
-	ratio1 = newsize[1]/coefbin.shape[1]+1
-	
-	#Resize the pixelated image with more pixels with function repeat
-	#Assign a specific number of pixels with congrid
-	coefrsz = congrid(np.repeat(np.repeat(coefbin,ratio0,axis=0),ratio1,axis=1),newsize,method='linear',centre=True)
-	#coefrsz = np.repeat(np.repeat(coefbin,ratio0,axis=0),ratio1,axis=1)
-	
-	# Shift to counter part
-	coefrsz = np.roll(coefrsz,-np.int(ratio1)/4, axis=1)
-	coefrsz = np.roll(coefrsz,-np.int(ratio0)/4, axis=0)
-	
-	#Smooth image with the Gaussian envelop of the wavelet
-	a = 1. / (scl*reso)
-	u, v, shiftx, shifty, ishiftx, ishifty = uv_plane(coefrsz.shape[1], coefrsz.shape[0])
-	r = np.sqrt(u**2. + v**2.)
-	
-	kernel = (np.pi/2.)*np.exp(-.5*(r*a)**2.)
-	
-	
-	coefrszFT = np.fft.fft2(coefrsz)
-	coefrszFT= np.roll(coefrszFT,int(shiftx), axis=1)
-	coefrszFT= np.roll(coefrszFT,int(shifty), axis=0)
-	
-	smoothFT = coefrszFT * kernel
-	
-	smoothFT2=np.roll(smoothFT,int(ishiftx), axis=1)
-	smoothFT2=np.roll(smoothFT2,int(ishifty), axis=0) 
-	smooth = np.fft.ifft2(smoothFT2)
-	
-	return smooth.real
-	
-###############################################
-
 def gauss_segmen(coeff, q=2.5, qdyn=False, skewl=0.4):
 	
 	temoin = np.zeros((coeff.shape[0],coeff.shape[1]))
@@ -330,21 +281,13 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 			
 				#Set limit based on the noise level of the original
 				#power spectrum
-				
-				if (j > 2) & (j <= 6):
-					W1 = downsample(W1, wav_k[j], reso)
 		
 				cohe, gcoeff, nq = gauss_segmen(W1, q=q[j], qdyn=qdyn, skewl=skewl)
 			
 
 				if (W1[gcoeff].shape[0] >  0):
-					if (j > 2) & (j <= 6):
-						Wnp = np.zeros(W1.shape, dtype=complex)
-						Wnp[gcoeff]=W1[gcoeff]
-						Wnp = rescale(Wnp,wav_k[j],(sy,sx),reso)
-					else:
-						Wnp = np.zeros((sy,sx), dtype=complex)
-						Wnp[gcoeff]=W1[gcoeff]
+					Wnp = np.zeros((sy,sx), dtype=complex)
+					Wnp[gcoeff]=W1[gcoeff]
 					W1n[j,:,:] = W1n[j,:,:]+ Wnp
 					nS1n[j,:,:] = nS1n[j,:,:] + np.abs(Wnp)
 					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2.
@@ -352,13 +295,8 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 					
 				
 				if (W1[cohe].shape[0] > 0):
-					if (j > 2) & (j <= 6):
-						Wcp = np.zeros(W1.shape, dtype=complex)
-						Wcp[cohe]=W1[cohe]
-						Wcp = rescale(Wcp,wav_k[j],(sy,sx),reso)
-					else:
-						Wcp = np.zeros((sy,sx), dtype=complex)
-						Wcp[cohe]=W1[cohe]
+					Wcp = np.zeros((sy,sx), dtype=complex)
+					Wcp[cohe]=W1[cohe]
 					W1c[j,:,:] = W1c[j,:,:] + Wcp
 					nS1c[j,:,:] = nS1c[j,:,:] + np.abs(Wcp)
 					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
