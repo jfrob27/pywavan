@@ -1,5 +1,6 @@
 import numpy as np
 from scipy.stats import skew
+from imsmooth import imsmooth
 
 ###############################################
 
@@ -142,7 +143,7 @@ def gauss_segmen(coeff, q=2.5, qdyn=False, **kwargs):
 	
 ###############################################
 
-def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, pownorm=True, **kwargs):
+def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, pownorm=True, smooth=False, **kwargs):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -290,6 +291,17 @@ def fan_trans(image, scales=0, reso=1, q=0, qdyn=False, pownorm=True, **kwargs):
 					Wcp=Wcp*0.
 					
 				q[j] = nq
+				
+		if smooth == True:
+			W1ns = W1n[j,:,:]
+			W1ns = imsmooth(W1ns, (2.*np.sqrt(2.*np.log(2.)))/(wav_k[j]*reso*2.*np.pi))
+			W1n[j,:,:] = W1ns
+			del W1ns
+			
+			W1cs = W1c[j,:,:]
+			W1cs = imsmooth(W1cs, (2.*np.sqrt(2.*np.log(2.)))/(wav_k[j]*reso*2.*np.pi))
+			W1c[j,:,:] = W1cs
+			del W1cs
 				
 	#----------------Wavelet power spectra---------------#
 		
