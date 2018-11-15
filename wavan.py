@@ -148,7 +148,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
 	returns a quasi-orthogonal basis (Robitaille, J.-F. et al. (2014), MNRAS,
-	440(3), 2726-2741). Right now scale option is broken.
+	440(3), 2726-2741).
 	
 	Parameters
 	----------
@@ -224,8 +224,6 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 		sy = nb
 		
 	S11 = np.zeros((M,sy,sx))
-	#nS11 = np.zeros((M,sy,sx))
-	S11p = np.zeros((M,sy,sx))
 	wt = np.zeros((M,sy,sx), dtype=complex)
 
 	if (q != 0):
@@ -271,8 +269,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 				W1 = depad(W1,nbo,nao)
 			
 			wt[j,:,:]= wt[j,:,:]+ W1
-			#nS11[j,:,:]= nS11[j,:,:] + np.abs(W1)
-			S11[j,:,:]= S11[j,:,:] + np.abs(W1)**2. 
+			S11[j,:,:]= S11[j,:,:] + np.abs(W1)**2.
 			
 	#----------------Segmentation------------------------#
 			if q != 0:
@@ -287,7 +284,6 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 					Wnp = np.zeros((sy,sx), dtype=complex)
 					Wnp[gcoeff]=W1[gcoeff]
 					W1n[j,:,:] = W1n[j,:,:]+ Wnp
-					#nS1n[j,:,:] = nS1n[j,:,:] + np.abs(Wnp)
 					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2.
 					Wnp=Wnp*0.
 					
@@ -296,7 +292,6 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 					Wcp = np.zeros((sy,sx), dtype=complex)
 					Wcp[cohe]=W1[cohe]
 					W1c[j,:,:] = W1c[j,:,:] + Wcp
-					#nS1c[j,:,:] = nS1c[j,:,:] + np.abs(Wcp)
 					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
 					Wcp=Wcp*0.
 					
