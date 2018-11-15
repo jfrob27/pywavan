@@ -113,7 +113,7 @@ def uv_plane(na, nb):
 
 def gauss_segmen(coeff, q=2.5, qdyn=False, skewl=0.4):
 	
-	module = np.abs(coeff)
+	module = np.log(np.abs(coeff))
 	tresh = module.max()
 	treshp = module.max()*2.
 
@@ -163,8 +163,6 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 	S1a : Wavelet power spectrum
 		1-dimensional array -> S11(scales)
 	'''
-	
-	print 'log'
 	
 	#--------------------Definitions----------------------#
 	ko= 5.336
