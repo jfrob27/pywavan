@@ -113,19 +113,15 @@ def uv_plane(na, nb):
 
 def gauss_segmen(coeff, q=2.5, qdyn=False, skewl=0.4):
 	
-	temoin = np.zeros((coeff.shape[0],coeff.shape[1]))
-	
 	module = np.abs(coeff)
 	tresh = module.max()
 	treshp = module.max()*2.
 
 	while ((treshp-tresh) != 0):
 		tresh = treshp
-		temoin = temoin*0
 		
 		indx = np.where((module <= tresh) & (module > 0.))
-		temoin = (module[indx])**2.
-		Sigtresh = np.sum(temoin)/(temoin.shape[0])
+		Sigtresh = np.mean((module[indx])**2.)
 		treshp = q *np.sqrt(Sigtresh)
 					
 		#Adjust q according to the skewness
@@ -167,6 +163,9 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 	S1a : Wavelet power spectrum
 		1-dimensional array -> S11(scales)
 	'''
+	
+	print 'log'
+	
 	#--------------------Definitions----------------------#
 	ko= 5.336
 	delta = (2.*np.sqrt(-2.*np.log(.75)))/ko
@@ -276,7 +275,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 			
 				#Set limit based on the noise level of the original
 				#power spectrum
-		
+				
 				cohe, gcoeff, nq = gauss_segmen(W1, q=q[j], qdyn=qdyn, skewl=skewl)
 			
 
