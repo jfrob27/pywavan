@@ -113,7 +113,7 @@ def uv_plane(na, nb):
 
 def gauss_segmen(coeff, q=2.5, qdyn=False, skewl=0.4):
 	
-	module = np.log(np.abs(coeff))
+	module = np.abs(coeff)
 	tresh = module.max()
 	treshp = module.max()*2.
 
@@ -313,18 +313,9 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 				S1a[0,j]=np.sum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
 				S1a[1,j]=np.sum(S1c[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
 				S1a[2,j]=np.sum(S1n[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
-            
-				#S11a[0:M,:,:] = nS11
-				#S11a[M:2*M,:,:] = nS1c
-				#S11a[2*M:3*M,:,:] = nS1n
-			
-				S11a[j,:,:] = S11[j,:,:] * a[j]**2. * delta / float(N)
-				S11a[M+j,:,:] = S1c[j,:,:] * a[j]**2. * delta / float(N)
-				S11a[2*M+j,:,:] = S1n[j,:,:] * a[j]**2. * delta / float(N)
 				
 			else:
 				S1a[j]=np.sum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
-				S11a[j,:,:] = S11[j,:,:] / np.mean(S11[j,:,:])
 				
 		else:
 			if q != 0:
@@ -332,19 +323,17 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 				S1a[0,j]=np.sum(S11[j,:,:]) * delta / (float(N) * na * nb)
 				S1a[1,j]=np.sum(S1c[j,:,:]) * delta / (float(N) * na * nb)
 				S1a[2,j]=np.sum(S1n[j,:,:]) * delta / (float(N) * na * nb)
-            
-				#S11a[0:M,:,:] = nS11
-				#S11a[M:2*M,:,:] = nS1c
-				#S11a[2*M:3*M,:,:] = nS1n
-			
-				S11a[j,:,:] = S11[j,:,:] * delta / float(N)
-				S11a[M+j,:,:] = S1c[j,:,:] * delta / float(N)
-				S11a[2*M+j,:,:] = S1n[j,:,:] * delta / float(N)
 				
 			else:
 				S1a[j]=np.sum(S11[j,:,:]) * delta / (float(N) * na * nb)
-				S11a[j,:,:] = S11[j,:,:] / np.mean(S11[j,:,:])
 		
+		if q != 0:
+			S11a[j,:,:] = S11[j,:,:] * delta / float(N)
+			S11a[M+j,:,:] = S1c[j,:,:] * delta / float(N)
+			S11a[2*M+j,:,:] = S1n[j,:,:] * delta / float(N)
+			
+		else:
+			S11a[j,:,:] = S11[j,:,:] * delta / float(N)
 			
 	if q != 0:
 		wtcoeff[0:M,:,:] = wt
