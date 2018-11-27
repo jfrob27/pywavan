@@ -270,9 +270,6 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 			
 	#----------------Segmentation------------------------#
 			if q != 0:
-			
-				#Set limit based on the noise level of the original
-				#power spectrum
 				
 				cohe, gcoeff, nq = gauss_segmen(W1, q=q[j], qdyn=qdyn, skewl=skewl)
 			
