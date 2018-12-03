@@ -139,7 +139,7 @@ def gauss_segmen(coeff, q=2.5, qdyn=False, skewl=0.4):
 	
 ###############################################
 
-def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=True, smooth=False, **kwargs):
+def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=True, smooth=False, angular=False, **kwargs):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -213,33 +213,50 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 
 	#-----------------Variables--------------#
 	
-	if cutpad == True:
+	N = int(np.pi/delta)	#Number of orientation for the Morlet wavelet
+	
+	if (cutpad == True):
 		sx = nao
 		sy = nbo
 	else:
 		sx = na
 		sy = nb
 		
+	if (angular == False):
+	
+		wt = np.zeros((M,sy,sx), dtype=complex)
+		if (q != 0):
+			W1c = np.zeros((M,sy,sx), dtype=complex)
+			W1n = np.zeros((M,sy,sx), dtype=complex)
+			wtcoeff = np.zeros((3*M,sy,sx), dtype=complex)
+		else:
+			wtcoeff = np.zeros((M,sy,sx), dtype=complex)
+			
+	else:
+	
+		wt = np.zeros((M,N,sy,sx), dtype=complex)
+		if (q != 0):
+			W1c = np.zeros((M,N,sy,sx), dtype=complex)
+			W1n = np.zeros((M,N,sy,sx), dtype=complex)
+			wtcoeff = np.zeros((3*M,N,sy,sx), dtype=complex)
+		else:
+			wtcoeff = np.zeros((M,N,sy,sx), dtype=complex)
+		
+		
 	S11 = np.zeros((M,sy,sx))
-	wt = np.zeros((M,sy,sx), dtype=complex)
 
 	if (q != 0):
 		S1a = np.zeros((3,M))
 		S1c = np.zeros((M,sy,sx))
 		S1n = np.zeros((M,sy,sx))
-		#nS1c = np.zeros((M,sy,sx))
-		#nS1n = np.zeros((M,sy,sx))
-		W1c = np.zeros((M,sy,sx), dtype=complex)
-		W1n = np.zeros((M,sy,sx), dtype=complex)
 		S11a = np.zeros((3*M,sy,sx))
-		wtcoeff = np.zeros((3*M,sy,sx), dtype=complex)
 	else:
 		S1a = np.zeros(M)
 		S11a = np.zeros((M,sy,sx))
-		wtcoeff = np.zeros((M,sy,sx), dtype=complex)
+		
+	
 	
 	a = ko * a2				#Scales in the wavelet space
-	N = int(np.pi/delta)	#Number of orientation for the Morlet wavelet
 	
 	
 	#----------------Wavelet transfom------------------------#
@@ -265,7 +282,10 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 			if ('arrdim' in kwargs) & (cutpad == True):
 				W1 = depad(W1,nbo,nao)
 			
-			wt[j,:,:]= wt[j,:,:]+ W1
+			if (angular == False):
+				wt[j,:,:]= wt[j,:,:]+ W1
+			else:
+				wt[j,i,:,:]= wt[j,i,:,:]+ W1
 			S11[j,:,:]= S11[j,:,:] + np.abs(W1)**2.
 			
 	#----------------Segmentation------------------------#
@@ -277,7 +297,10 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 				if (W1[gcoeff].shape[0] >  0):
 					Wnp = np.zeros((sy,sx), dtype=complex)
 					Wnp[gcoeff]=W1[gcoeff]
-					W1n[j,:,:] = W1n[j,:,:]+ Wnp
+					if (angular == False):
+						W1n[j,:,:] = W1n[j,:,:]+ Wnp
+					else:
+						W1n[j,i,:,:] = W1n[j,i,:,:]+ Wnp
 					S1n[j,:,:] = S1n[j,:,:] + np.abs(Wnp)**2.
 					Wnp=Wnp*0.
 					
@@ -285,7 +308,10 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 				if (W1[cohe].shape[0] > 0):
 					Wcp = np.zeros((sy,sx), dtype=complex)
 					Wcp[cohe]=W1[cohe]
-					W1c[j,:,:] = W1c[j,:,:] + Wcp
+					if (angular == False):
+						W1c[j,:,:] = W1c[j,:,:] + Wcp
+					else:
+						W1c[j,i,:,:] = W1c[j,i,:,:] + Wcp
 					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
 					Wcp=Wcp*0.
 					
@@ -337,9 +363,14 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 				S11a[j,:,:] = S11[j,:,:] * delta / float(N)
 			
 	if q != 0:
-		wtcoeff[0:M,:,:] = wt
-		wtcoeff[M:2*M,:,:] = W1c
-		wtcoeff[2*M:3*M,:,:] = W1n
+		if (angular == False):
+			wtcoeff[0:M,:,:] = wt
+			wtcoeff[M:2*M,:,:] = W1c
+			wtcoeff[2*M:3*M,:,:] = W1n
+		else:
+			wtcoeff[0:M,:,:,:] = wt
+			wtcoeff[M:2*M,:,:,:] = W1c
+			wtcoeff[2*M:3*M,:,:,:] = W1n
 	else:
 		wtcoeff = wt
 		
