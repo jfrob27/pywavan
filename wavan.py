@@ -139,7 +139,7 @@ def gauss_segmen(coeff, q=2.5, qdyn=False, skewl=0.4):
 	
 ###############################################
 
-def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=True, smooth=False, angular=False, **kwargs):
+def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=True, cutpad=True, smooth=False, angular=False, **kwargs):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -172,6 +172,18 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 	
 	nao = np.copy(na)
 	nbo = np.copy(nb)
+	
+	#-----------------Remove mean value-------------------#
+	if zeromean == True:
+		image -= np.mean(image)
+	
+	#----------Estimate initial standard deviation------------#
+	
+	#The initial standard deviation is estimated inorder to calculate the correction
+	#factor on the reconstructed map -> C_del = sig_0 / sig_r
+	#Constant calculated at the end of this function
+	
+	sig_0 = np.std(image)
 		
 	#--------------Apodization--------------------#
 	
@@ -362,16 +374,21 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, pownorm=True, cutpad=Tr
 				
 				S11a[j,:,:] = S11[j,:,:] * delta / float(N)
 			
+			
+	#Calculate the correction factor -> C_del = sig_0 / sig_r
+	sig_r = np.std(np.sum(wt,axis=0).real)
+	C_del = sig_0 / sig_r
+	
 	if q != 0:
 		if (angular == False):
-			wtcoeff[0:M,:,:] = wt
-			wtcoeff[M:2*M,:,:] = W1c
-			wtcoeff[2*M:3*M,:,:] = W1n
+			wtcoeff[0:M,:,:] = wt * C_del
+			wtcoeff[M:2*M,:,:] = W1c * C_del
+			wtcoeff[2*M:3*M,:,:] = W1n * C_del
 		else:
-			wtcoeff[0:M,:,:,:] = wt
-			wtcoeff[M:2*M,:,:,:] = W1c
-			wtcoeff[2*M:3*M,:,:,:] = W1n
+			wtcoeff[0:M,:,:,:] = wt * C_del
+			wtcoeff[M:2*M,:,:,:] = W1c * C_del
+			wtcoeff[2*M:3*M,:,:,:] = W1n * C_del
 	else:
-		wtcoeff = wt
+		wtcoeff = wt * C_del
 		
 	return wtcoeff, S11a, wav_k, S1a, q
