@@ -15,3 +15,7 @@ Clone this repository:
 `git clone https://github.com/jfrob27/pywavan.git`
 
 and add the folder path to your `PYTHONPATH`.
+
+**pywavan** is dependant for some functions of the repository **ismpy**
+
+`git clone https://github.com/jfrob27/ismpy.git`
