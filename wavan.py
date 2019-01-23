@@ -139,7 +139,8 @@ def gauss_segmen(coeff, q=2.5, qdyn=False, skewl=0.4):
 	
 ###############################################
 
-def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=True, cutpad=True, smooth=False, angular=False, **kwargs):
+def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=True,\
+				sigma=None, cutpad=True, smooth=False, angular=False, **kwargs):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -374,6 +375,9 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 				
 				S11a[j,:,:] = S11[j,:,:] * delta / float(N)
 			
+	#Calculate uncertainties for the power spectra
+	if (sigma.any() != None):
+		sigma = np.std(S11a, axis=(1,2))
 			
 	#Calculate the correction factor -> C_del = sig_0 / sig_r
 	sig_r = np.std(np.sum(wt,axis=0).real)
