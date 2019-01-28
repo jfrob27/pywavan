@@ -1,3 +1,4 @@
+name = "pywavan"
 from powspec import powspec
 from wavan import fan_trans, apodize, padding, depad
 from imsmooth import imsmooth

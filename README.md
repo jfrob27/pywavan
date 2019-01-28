@@ -28,6 +28,8 @@ Clone this repository:
 
 and add the folder path to your `PYTHONPATH`.
 
-**pywavan** is dependant for some functions of the repository **ismpy**
+OR
 
-`git clone https://github.com/jfrob27/ismpy.git`
+`pip install -i https://test.pypi.org/simple/ pywavan`
+
+(however pywavan is still at is early stage of delivery/testing)
