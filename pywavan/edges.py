@@ -75,4 +75,4 @@ def depad(input, y, x):
 	
 	output = input[ypos:y+ypos,xpos:x+xpos]
 	
-	return outpu
+	return output

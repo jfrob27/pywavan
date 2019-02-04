@@ -18,7 +18,7 @@ Here is a non-hexaustive description for some other functions:
 
 * Finally, the function **fbm2d()** in *noisegen.py* allows one to create a fractional Brownian motion map, i.e. a fractal image, respecting a specific power law.
 
-Many of these functions are strongly inspired by the [mamdlib](https://www.ias.u-psud.fr/pperso/mmiville/mamdlib.html) IDL library.
+Some of these functions are strongly inspired by the [mamdlib](https://www.ias.u-psud.fr/pperso/mmiville/mamdlib.html) IDL library.
 
 ## Installation
 
@@ -30,6 +30,4 @@ and add the folder path to your `PYTHONPATH`.
 
 OR
 
-`pip install -i https://test.pypi.org/simple/ pywavan`
-
-(however pywavan is still at its early stage of delivery/testing)
+`pip install .`

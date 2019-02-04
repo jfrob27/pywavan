@@ -16,18 +16,69 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	----------
 	image : array_like
 		Input array, must be 2-dimentional and real
-	scales : array_like, optional
-		Array of spatial scales in terms of Fourier wavenumber k
 	reso : float, optional
 		Resolution of the image in pixel^-1
+	q : list, optional
+		The dimensionless constant controlling how restrictive is the definition of
+		non-Gaussiannities. Typically between 1.8 and 3.0. If set to zero, no
+		segmentation is performed by the function. If segmentation is performed, a
+		list of q with a number of element equals to the number of scales msut be
+		provided.
+		Ex.: q=[]
+			 q=[2.5]*24
+	qdyn : boolean, False by default
+		If True, the value of q is minimized according to the skewness of the wavelet
+		coefficient distributions as a function of scales.
+	skewl : float, 0.4 by default
+		Skewness limit value to minimize q.
+	zeromean : boolean, True by default
+		Subtract image's mean value before performing the wavelet transforms
+	pownorm : boolean, True by default
+		Normalize the wavelet power spectrum array so thatit can be compared to the
+		Fourier power spectrum.
+	sigma : variable, optional
+		Name of the variable for the uncertainty outputs on the wavelet power spectrum
+	cutpad : boolean, True by default
+		If True, the function returns the wavelet transformed maps with the dimension
+		than the original image. If False, wavelet transformed map sizes correspond to
+		the sizes specified in the keyword "arrdim".
+	smooth : boolean, False by default
+		If True, a smoothing is performed at every scales in order to correct
+		segmentation's artefact.
+	angular : boolean, False by default
+		If True, the returned wavelet coefficients have an angular dependency.
+		Ex.: wtcoeff = np.zeros((3*M,N,sy,sx), dtype=complex)
+		instead of wtcoeff = np.zeros((3*M,sy,sx), dtype=complex)
+	
+	Keywords
+	--------
+	scales : array_like, optional
+		Array of spatial scales in terms of Fourier wavenumber k
+	apodize : float (0.<radius<1.), optional
+		Radius of apodization.
+		Ex.: apodize = 0.98, 2% of the edges will be smoothly apodized to zero.
+	arrdim : two-element array
+		np.array([newy,newx]) sizes including the zero value pixel padding.
 		
 	Returns
 	-------
 	wt : data cube of wavelet coefficients (complex array)
-		wt[scales,nx,ny] -> is the size of the input image
+		wt[scales,nx,ny]
+		If angular = True -> wt[scales,angles,nx,ny]
+		If q != 0 ->
+			wtcoeff[0:M,:,:] -> all coefficient
+			wtcoeff[M:2*M,:,:] -> non-Gaussian coefficients
+			wtcoeff[2*M:3*M,:,:] -> Gaussian coefficients
+			where M is the number of scales
+	S11a : data cube of <|wt|^2>
 	wav_k : Array of spatial scales used for the decomposition
-	S1a : Wavelet power spectrum
+	S1a : Wavelet power spectra
 		1-dimensional array -> S11(scales)
+		If q !=0 ->
+			S1a[0,:] -> total wavelet power spectrum
+			S1a[1,:] -> non-Gaussian wavelet power spectrum
+			S1a[2,:] -> Gaussian wavelet power spectrum
+	q : updated q list if qdyn = True.
 	'''
 	
 	#--------------------Definitions----------------------#
@@ -241,7 +292,9 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 				S11a[j,:,:] = S11[j,:,:] * delta / float(N)
 			
 	#Calculate uncertainties for the power spectra
-	if (sigma.any() != None):
+	if (sigma == None):
+		sigma = None
+	else:
 		sigma = np.std(S11a, axis=(1,2))
 			
 	#Calculate the correction factor -> C_del = sig_0 / sig_r

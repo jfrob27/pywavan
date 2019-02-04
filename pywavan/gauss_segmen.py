@@ -2,6 +2,11 @@ import numpy as np
 from scipy.stats import skew
 
 def gauss_segmen(coeff, q=2.5, qdyn=False, skewl=0.4):
+	'''
+	Non- Gaussian segmentation algorythm based on
+	Azzalini, A., Farge, M., & Schneider, K. 2005
+	Applied and Computational Harmonic Analysis, 18 (Elsevier), 177
+	'''
 	
 	module = np.abs(coeff)
 	tresh = module.max()
