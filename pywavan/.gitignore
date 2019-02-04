@@ -5,3 +5,5 @@
 ../dist/
 ../pywavan.egg-info/
 ../.DS_Store
+../tutorial/.DS_Store
+../tutorial/.ipynb_checkpoints/
