@@ -1,6 +1,7 @@
-python/*.pyc
+*~
+*.pyc
 .ipynb_checkpoints
-../build
-../dist
-../pywavan.egg-info
+../build/
+../dist/
+../pywavan.egg-info/
 ../.DS_Store

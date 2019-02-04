@@ -32,4 +32,4 @@ OR
 
 `pip install -i https://test.pypi.org/simple/ pywavan`
 
-(however pywavan is still at is early stage of delivery/testing)
+(however pywavan is still at its early stage of delivery/testing)
