@@ -1,5 +1,5 @@
 import numpy as np
-from wavan import uv_plane
+from .wavan import uv_plane
 
 def halo_transform(image):
 	'''

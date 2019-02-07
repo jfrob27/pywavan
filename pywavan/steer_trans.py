@@ -1,6 +1,6 @@
 import numpy as np
 from astropy.io import fits
-from wavan import uv_plane
+from .wavan import uv_plane
 
 def steer_trans(im,Nite=2):
 

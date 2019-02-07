@@ -1,8 +1,8 @@
 import numpy as np
-from imsmooth import imsmooth
-from edges import apodize, padding, depad
-from uv_plane import uv_plane
-from gauss_segmen import gauss_segmen
+from .imsmooth import imsmooth
+from .edges import apodize, padding, depad
+from .uv_plane import uv_plane
+from .gauss_segmen import gauss_segmen
 
 def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=True,\
 				sigma=None, cutpad=True, smooth=False, angular=False, **kwargs):
@@ -113,7 +113,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 		na = arrdim[1]
 		nb = arrdim[0]
 		image = padding(image,arrdim[0],arrdim[1])
-		print na,nb
+		print(na,nb)
 		
 	#--------------Spectral Logarithm--------------------#
 	
