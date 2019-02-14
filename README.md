@@ -26,8 +26,6 @@ Clone this repository:
 
 `git clone https://github.com/jfrob27/pywavan.git`
 
-and add the folder path to your `PYTHONPATH`.
-
-OR
+and in the *pywavan* directory
 
 `pip install .`
