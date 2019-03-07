@@ -37,9 +37,9 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
     old = n.array( a.shape )
     ndims = len( a.shape )
     if len( newdims ) != ndims:
-        print "[congrid] dimensions error. " \
+        print("[congrid] dimensions error. " \
               "This routine currently only support " \
-              "rebinning to the same number of dimensions."
+              "rebinning to the same number of dimensions.")
         return None
     newdims = n.asarray( newdims)
     dimlist = []
@@ -100,7 +100,7 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
         newa = scipy.ndimage.map_coordinates(a, newcoords)
         return newa
     else:
-        print "Congrid error: Unrecognized interpolation type.\n", \
+        print("Congrid error: Unrecognized interpolation type.\n", \
               "Currently only \'neighbour\', \'nearest\',\'linear\',", \
-              "and \'spline\' are supported."
+              "and \'spline\' are supported.")
         return None
