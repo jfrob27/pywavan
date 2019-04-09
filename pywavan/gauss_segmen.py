@@ -10,9 +10,9 @@ def gauss_segmen(coeff, q=2.5, qdyn=False, skewl=0.4):
 	
 	module = np.abs(coeff)
 	tresh = module.max()
-	treshp = module.max()*2.
+	treshp = module.max()*5.
 
-	while ((treshp-tresh) != 0):
+	while (((treshp-tresh) != 0) & (q > 1.)):
 		tresh = treshp
 		
 		indx = np.where((module <= tresh) & (module > 0.))
