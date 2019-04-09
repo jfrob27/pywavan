@@ -7,3 +7,4 @@ from .edges import apodize, padding, depad
 from .uv_plane import uv_plane
 from .gauss_segmen import gauss_segmen
 from .noisegen import fbm2d, perlin2d
+from .subfits import subfits

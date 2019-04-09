@@ -66,7 +66,7 @@ def congrid(a, newdims, method='linear', centre=False, minusone=False):
         mint = scipy.interpolate.interp1d( olddims[-1], a, kind=method )
         newa = mint( dimlist[-1] )
 
-        trorder = [ndims - 1] + range( ndims - 1 )
+        trorder = [ndims - 1] + n.asarray(range( ndims - 1 )).tolist()
         for i in range( ndims - 2, -1, -1 ):
             newa = newa.transpose( trorder )
 
