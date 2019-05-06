@@ -20,7 +20,7 @@ def gauss_beam(sigma, ny, nx, FWHM=False):
 	
 	X=np.arange(nx)
 	Y=np.arange(ny)
-	ymap,xmap=np.meshgrid(X,Y)
+	xmap,ymap=np.meshgrid(X,Y)
 	
 	if (nx % 2) == 0:
 		xmap = xmap - (nx)/2.
