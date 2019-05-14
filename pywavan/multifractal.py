@@ -1,28 +1,32 @@
 import numpy as np
-from .wavan import fan_trans
+from pywavan.wavan import fan_trans
 from scipy.stats import linregress
 
-def tauq(image, H=2, q=0 ,kmaxscale=0.05, kminscale=0.1):
+def tau_q(image, qq=[-1,0,1,2,3,4,5,6], q=0 ,kmaxscale=0.05, kminscale=0.1):
     '''
-	Based on the Fan wavelet wavelet transform this function calculate the partition
+	Based on the Fan wavelet wavelet transform this function calculates the partition
 	function 'tau_q'
 	
-	Z(q,l) ~ l^tau_q
+	Z(qq,l) = <|wt|^qq>
 	
-	Z(q,l) = <|wt|^q>
+	Z(qq,l) ~ l^tau_qq
 	
-	Kirby, J. F. (2005),Computers andGeosciences, 31(7), 846-864
+	References:
+	Kirby, J. F. (2005),Computers and Geosciences, 31(7), 846-864
 	Robitaille, J.-F. et al. (2014), MNRAS,440(3), 2726-2741
 	Khalil, A., Joncas, G., Nekka, F., Kestener, P., & Arneodo, A. 2006, ApJS, 165, 512
 	
-	Credit: 
+	Credit:
+	April 2019 - Abdelhalim Abdeldayem
+	May 2019   - Jean-Francois Robitaille
 	
 	Parameters
 	----------
 	image : array_like
 		Input array, must be 2-dimentional and real
-	
-	H : list, optional
+	qq : list, optional
+		The order of the moment for the partition functions Z(qq,l)
+	q : list, [-1,0,1,2,3,4,5,6] by default
 		The dimensionless constant controlling how restrictive is the definition of
 		non-Gaussiannities. Typically between 1.8 and 3.0. If set to zero, no
 		segmentation is performed by the function. If segmentation is performed, a
@@ -30,36 +34,42 @@ def tauq(image, H=2, q=0 ,kmaxscale=0.05, kminscale=0.1):
 		provided.
 		Ex.: q=[]
 			 q=[2.5]*24
+	qdyn : boolean, False by default
+		If True, the value of q is minimized according to the skewness of the wavelet
+		coefficient distributions as a function of scales.
+	skewl : float, 0.4 by default
+		Skewness limit value to minimize q.
+	pownorm : boolean, True by default
+		Normalize the wavelet power spectrum array so that it can be compared to the
+		Fourier power spectrum.
              
 	Returns
 	-------
     
-    tau : data cube of <|wt|^2>
+    tau_q : data cube of <|wt|^2>
 	
     '''
     
     wt, S11a, wav_k, S1a, q = fan_trans(image, reso=1, q=q , qdyn=True, skewl=0.4, pownorm=False, angular=True)
     
+    nb, na = image.shape
     
-    na = image.shape[1]
-    nb = image.shape[0]
-    
-    a=np.where(wav_k>=kmaxscale)[0][0]
-    b=np.where(wav_k>=kminscale)[0][0]
-    ab=range(a,b+1)
+    a = np.where(wav_k>=kmaxscale)[0][0]
+    b = np.where(wav_k>=kminscale)[0][0]
+    ab = range(a,b+1)
     
 
-    N=wt.shape[1]
-    delta=np.pi/N
-    M=np.size(wav_k)
+    N = wt.shape[1]
+    delta = np.pi/N
+    M = wav_k.size
     
     if q!=0:
         
-        S1=np.zeros((3,np.size(H),M))
-        tau=np.zeros((3,np.size(H)))
+        S1 = np.zeros((3,len(qq),M))
+        tau=np.zeros((3,len(qq)))
         
-        for i1 in range(0,np.size(H)):
-            h=H[i1]
+        for i1 in range(0,len(qq)):
+            h=qq[i1]
 
             for i4 in range(3):
                 
@@ -77,12 +87,12 @@ def tauq(image, H=2, q=0 ,kmaxscale=0.05, kminscale=0.1):
         
     else:
         
-        S1=np.zeros((np.size(H),M))
-        tau=np.zeros(np.size(H))
+        S1=np.zeros((len(qq),M))
+        tau=np.zeros(len(qq))
         
-        for i1 in range(0,np.size(H)):
+        for i1 in range(0,len(qq)):
             
-            h=H[i1]
+            h=qq[i1]
             S11=np.zeros((M,nb,na))
             
             for i2 in range(0,M):

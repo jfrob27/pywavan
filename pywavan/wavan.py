@@ -34,7 +34,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	zeromean : boolean, True by default
 		Subtract image's mean value before performing the wavelet transforms
 	pownorm : boolean, True by default
-		Normalize the wavelet power spectrum array so thatit can be compared to the
+		Normalize the wavelet power spectrum array so that it can be compared to the
 		Fourier power spectrum.
 	sigma : variable, optional
 		Name of the variable for the uncertainty outputs on the wavelet power spectrum
@@ -84,8 +84,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	#--------------------Definitions----------------------#
 	ko= 5.336
 	delta = (2.*np.sqrt(-2.*np.log(.75)))/ko
-	na = image.shape[1]
-	nb = image.shape[0]
+	nb, na = image.shape
 	
 	nao = np.copy(na)
 	nbo = np.copy(nb)
@@ -298,6 +297,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 		sigma = np.std(S11a, axis=(1,2))
 			
 	#Calculate the correction factor -> C_del = sig_0 / sig_r
+	
 	sig_r = np.std(np.sum(wt,axis=0).real)
 	C_del = sig_0 / sig_r
 	
