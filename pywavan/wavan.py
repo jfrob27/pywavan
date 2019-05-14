@@ -296,17 +296,20 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 		sigma = None
 	else:
 		sigma = np.std(S11a, axis=(1,2))
-			
-	#Calculate the correction factor -> C_del = sig_0 / sig_r
-	sig_r = np.std(np.sum(wt,axis=0).real)
-	C_del = sig_0 / sig_r
 	
 	if q != 0:
 		if (angular == False):
+			#Calculate the correction factor -> C_del = sig_0 / sig_r
+			sig_r = np.std(np.sum(wt,axis=0).real)
+			C_del = sig_0 / sig_r
+			
 			wtcoeff[0:M,:,:] = wt * C_del
 			wtcoeff[M:2*M,:,:] = W1c * C_del
 			wtcoeff[2*M:3*M,:,:] = W1n * C_del
 		else:
+			sig_r = np.std(np.sum(wt,axis=(0,1)).real)
+			C_del = sig_0 / sig_r
+			
 			wtcoeff[0:M,:,:,:] = wt * C_del
 			wtcoeff[M:2*M,:,:,:] = W1c * C_del
 			wtcoeff[2*M:3*M,:,:,:] = W1n * C_del
