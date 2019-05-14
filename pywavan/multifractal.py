@@ -1,6 +1,7 @@
 import numpy as np
 from pywavan.wavan import fan_trans
 from scipy.stats import linregress
+from scipy import interpolate
 
 def tau_q(image, qq=[-1,0,1,2,3,4,5,6], q=0 ,kmaxscale=0.05, kminscale=0.1):
     '''
@@ -107,3 +108,13 @@ def tau_q(image, qq=[-1,0,1,2,3,4,5,6], q=0 ,kmaxscale=0.05, kminscale=0.1):
             tau[i1]=linregress(np.log(wav_k[ab]),np.log(S1[i1,ab])).slope
             
     return tau, S1, wav_k, ab
+
+def Dh(q1,t1):
+    
+    spl = interpolate.splrep(q1,t1)
+    L=np.zeros(np.size(q1))
+    u=np.zeros(np.size(q1))
+    for i in range(np.size(q1)):
+        u[i] = interpolate.splev(q1[i],spl,der=1)
+        L[i]=u[i]*q1[i]+3-t1[i]
+    return L,u

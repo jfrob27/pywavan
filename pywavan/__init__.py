@@ -9,3 +9,4 @@ from .gauss_segmen import gauss_segmen
 from .noisegen import fbm2d, perlin2d
 from .subfits import subfits
 from .multifractal import tau_q
+from .multifractal import Dh
