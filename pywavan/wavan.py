@@ -313,6 +313,8 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 			wtcoeff[M:2*M,:,:,:] = W1c * C_del
 			wtcoeff[2*M:3*M,:,:,:] = W1n * C_del
 	else:
+		sig_r = np.std(np.sum(wt,axis=0).real)
+		C_del = sig_0 / sig_r
 		wtcoeff = wt * C_del
 		
 	return wtcoeff, S11a, wav_k, S1a, q
