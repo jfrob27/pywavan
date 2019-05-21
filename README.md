@@ -29,3 +29,5 @@ Clone this repository:
 and in the *pywavan* directory
 
 `pip install .`
+
+A Notebook tutorial is also available [here](https://nbviewer.jupyter.org/github/jfrob27/pywavan/blob/master/tutorial/tuto_pywavan.ipynb) and in the *tutorial* folder.
