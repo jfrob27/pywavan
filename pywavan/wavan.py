@@ -243,8 +243,9 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 						W1c[j,i,:,:] = W1c[j,i,:,:] + Wcp
 					S1c[j,:,:] = S1c[j,:,:] + np.abs(Wcp)**2.
 					Wcp=Wcp*0.
-					
-				q[j] = nq
+		
+		if q != 0:
+			q[j] = nq
 				
 		if smooth == True:
 			W1ns = W1n[j,:,:]
