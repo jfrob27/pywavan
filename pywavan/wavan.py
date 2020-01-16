@@ -59,6 +59,9 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 		Ex.: apodize = 0.98, 2% of the edges will be smoothly apodized to zero.
 	arrdim : two-element array
 		np.array([newy,newx]) sizes including the zero value pixel padding.
+	Ndir : integer
+		Number of directions to sample (can oversample or undersample for power
+		spectrum calculation).
 		
 	Returns
 	-------
@@ -141,8 +144,11 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	x, y, shiftx, shifty, ishiftx, ishifty = uv_plane(na, nb)
 
 	#-----------------Variables--------------#
-	
-	N = int(np.pi/delta)	#Number of orientation for the Morlet wavelet
+	if ('Ndir' in kwargs):
+		N = kwargs.get('Ndir')  #Number of orientation for the Morlet wavelet (not optimally sampled)
+		delta = np.pi/N
+	else:
+		N = int(np.pi/delta)	#Number of orientation for the Morlet wavelet
 	
 	if (cutpad == True):
 		sx = nao
