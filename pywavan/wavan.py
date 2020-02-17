@@ -52,8 +52,8 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	
 	Keywords
 	--------
-	scales : array_like, optional
-		Array of spatial scales in terms of Fourier wavenumber k
+	scales : array_like or float, optional
+		Array of spatial scales or single scale in terms of Fourier wavenumber k
 	apodize : float (0.<radius<1.), optional
 		Radius of apodization.
 		Ex.: apodize = 0.98, 2% of the edges will be smoothly apodized to zero.
@@ -122,9 +122,9 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	
 	if 'scales' in kwargs:
 		scales = kwargs.get('scales')
-		wav_k = scales
-		a2 = 1. / (scales * reso)
-		M = scales.size
+		wav_k = np.asarray(scales)
+		a2 = 1. / (wav_k * reso)
+		M = wav_k.size
 	
 	else:
 		nx = np.max(np.array([na,nb]))
@@ -204,8 +204,12 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 		for i in range(N):
 			uv=0.
 			t=float(delta*i)
-				
-			uv=np.exp( -.5*((a[j]*x - ko*np.cos(t))**2. + (a[j]*y - ko*np.sin(t))**2.))
+			
+			if type(a) == np.ndarray:
+				aa = a[j]
+			else:
+				aa = a
+			uv=np.exp( -.5*((aa*x - ko*np.cos(t))**2. + (aa*y - ko*np.sin(t))**2.))
 					
 			#uv = uv * a[j]		#Energy normalisation on coefficients directly
 						
@@ -269,18 +273,18 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 		if pownorm==True:
 			if q != 0:
 				#Power spectra with scale power normalisation
-				S1a[0,j]=np.sum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
-				S1a[1,j]=np.sum(S1c[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
-				S1a[2,j]=np.sum(S1n[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
+				S1a[0,j]=np.sum(S11[j,:,:]) * aa**2. * delta / (float(N) * na * nb)
+				S1a[1,j]=np.sum(S1c[j,:,:]) * aa**2. * delta / (float(N) * na * nb)
+				S1a[2,j]=np.sum(S1n[j,:,:]) * aa**2. * delta / (float(N) * na * nb)
 				
-				S11a[j,:,:] = S11[j,:,:] * a[j]**2. * delta / float(N)
-				S11a[M+j,:,:] = S1c[j,:,:] * a[j]**2. * delta / float(N)
-				S11a[2*M+j,:,:] = S1n[j,:,:] * a[j]**2. * delta / float(N)
+				S11a[j,:,:] = S11[j,:,:] * aa**2. * delta / float(N)
+				S11a[M+j,:,:] = S1c[j,:,:] * aa**2. * delta / float(N)
+				S11a[2*M+j,:,:] = S1n[j,:,:] * aa**2. * delta / float(N)
 				
 			else:
-				S1a[j]=np.sum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
+				S1a[j]=np.sum(S11[j,:,:]) * aa**2. * delta / (float(N) * na * nb)
 				
-				S11a[j,:,:] = S11[j,:,:] * a[j]**2. * delta / float(N)
+				S11a[j,:,:] = S11[j,:,:] * aa**2. * delta / float(N)
 				
 		else:
 			if q != 0:

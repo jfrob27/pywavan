@@ -52,7 +52,7 @@ def padding(input, y, x):
 	width = input.shape[1]
 	height = input.shape[0]
 
-	output = np.zeros((y,x))
+	output = np.zeros((y,x),dtype=input.dtype)
 	
 	xpos = np.int(x/2 - width/2)
 	ypos = np.int(y/2 - height/2)
@@ -68,7 +68,7 @@ def depad(input, y, x):
 	width = input.shape[1]
 	height = input.shape[0]
 	
-	output = np.zeros((y,x))
+	output = np.zeros((y,x),dtype=input.dtype)
 	
 	xpos = np.int(width/2 - x/2)
 	ypos = np.int(height/2 - y/2)
