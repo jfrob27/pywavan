@@ -6,7 +6,7 @@ from .edges import padding, depad
 from .gauss_segmen import gauss_segmen
 from .imsmooth import imsmooth
 
-def extrapol_seg(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=False, skewl=0.4, smooth=False):
+def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=False, skewl=0.4, smooth=False):
 	
 	fbm = fbm2d(powlawfit[0],newsize, newsize)
 	wt, S11a, wav_k, S1a, q = fan_trans(fbm, reso=reso, q=0, qdyn=False, scales=scale)
