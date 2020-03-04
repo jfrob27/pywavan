@@ -48,4 +48,4 @@ def extrapol_seg(coeff, power, scale, reso, powlawfit, newsize, q=2.5, qdyn=Fals
 		wtc = imsmooth(wtc, (2.*np.sqrt(2.*np.log(2.)))/(scale*reso*2.*np.pi))
 		wtg = imsmooth(wtg, (2.*np.sqrt(2.*np.log(2.)))/(scale*reso*2.*np.pi))
 	
-	return wtc, wtg, S11ac, S11ag
+	return wtc, wtg, S11ac, S11ag, powerbinpadsm
