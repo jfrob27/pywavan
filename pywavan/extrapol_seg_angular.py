@@ -31,8 +31,6 @@ def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=Fal
 
 	wtg = np.zeros((newsize,newsize),dtype='complex128')
 	wtc = np.zeros((newsize,newsize),dtype='complex128')
-	S11ag = np.zeros((newsize,newsize))
-	S11ac = np.zeros((newsize,newsize))
 
 	wtc[cohe] = coeffpad[cohe]
 	wtg[gcoeff] = coeffpad[gcoeff]
