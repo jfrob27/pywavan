@@ -7,6 +7,13 @@ from .gauss_segmen import gauss_segmen
 from .imsmooth import imsmooth
 
 def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=False, skewl=0.4, smooth=False):
+    
+    #Angular separation
+	ko= 5.336
+	delta = (2.*np.sqrt(-2.*np.log(.75)))/ko
+	
+	#Power normalisation
+	aa = ko / (scale * reso)
 	
 	fbm = fbm2d(powlawfit[0],newsize, newsize)
 	wt, S11a, wav_k, S1a, q = fan_trans(fbm, reso=reso, q=0, qdyn=False, scales=scale)
@@ -17,7 +24,7 @@ def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=Fal
 		
 	#Downsampling extrapolation and image wavelet coefficients
 	S11abin = downsample(S11a[0,:,:], scale, reso)*factor
-	powerbin = downsample(np.abs(coeff)**2., scale, reso)
+	powerbin = downsample(np.abs(coeff)**2.* aa**2. * delta, scale, reso)
 	
 	#Combine image and Gaussian extrapolation and smooth
 	powerbinpad = padding(powerbin,S11abin.shape[1],S11abin.shape[0])
@@ -28,9 +35,10 @@ def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=Fal
 	cohe, gcoeff, nq = gauss_segmen(powerbinpadsm, q=2.5, qdyn=False, skewl=0.4)
 	
 	coeffpad = padding(coeff,newsize,newsize)
+	print(coeff[coeff.shape[0]/2.,coeff.shape[1]/2.])
 
-	wtg = np.zeros((newsize,newsize),dtype='complex128')
-	wtc = np.zeros((newsize,newsize),dtype='complex128')
+	wtg = np.zeros((newsize,newsize),dtype=complex)
+	wtc = np.zeros((newsize,newsize),dtype=complex)
 
 	wtc[cohe] = coeffpad[cohe]
 	wtg[gcoeff] = coeffpad[gcoeff]
