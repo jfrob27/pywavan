@@ -36,16 +36,12 @@ def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=Fal
 
 	wtc[cohe] = coeffpad[cohe]
 	wtg[gcoeff] = coeffpad[gcoeff]
-	S11ac[cohe] = powerbinpadsm[cohe]
-	S11ag[gcoeff] = powerbinpadsm[gcoeff]
 
 	wtc = depad(wtc,coeff.shape[0],coeff.shape[1])
 	wtg = depad(wtg,coeff.shape[0],coeff.shape[1])
-	S11ac = depad(S11ac,coeff.shape[0],coeff.shape[1])
-	S11ag = depad(S11ag,coeff.shape[0],coeff.shape[1])
 	
 	if smooth == True:
 		wtc = imsmooth(wtc, (2.*np.sqrt(2.*np.log(2.)))/(scale*reso*2.*np.pi))
 		wtg = imsmooth(wtg, (2.*np.sqrt(2.*np.log(2.)))/(scale*reso*2.*np.pi))
 	
-	return wtc, wtg, S11ac, S11ag, powerbinpadsm
+	return wtc, wtg, powerbinpadsm
