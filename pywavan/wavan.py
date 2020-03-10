@@ -334,4 +334,4 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 			C_del = sig_0 / sig_r
 			wtcoeff = wt * C_del
 		
-	return wtcoeff, S11a, wav_k, S1a, q
+	return wtcoeff, S11a, wav_k, S1a, q, C_del
