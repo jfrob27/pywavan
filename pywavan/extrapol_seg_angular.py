@@ -6,7 +6,7 @@ from .edges import padding, depad
 from .gauss_segmen import gauss_segmen
 from .imsmooth import imsmooth
 
-def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=False, skewl=0.4, smooth=False):
+def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, C_del, q=2.5, qdyn=False, skewl=0.4, smooth=False):
     
     #Angular separation
 	ko= 5.336
@@ -16,8 +16,8 @@ def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=Fal
 	aa = ko / (scale * reso)
 	
 	fbm = fbm2d(powlawfit[0],newsize, newsize)
-	wt, S11a, wav_k, S1a, q = fan_trans(fbm, reso=reso, q=0, qdyn=False, scales=scale)
-	del wt, wav_k, q
+	wt, S11a, wav_k, S1a, qsimu, C_del = fan_trans(fbm, reso=reso, scales=scale)
+	del wt, wav_k
 	
 	#Normalisation for the Gaussian extrapolation
 	factor = (np.exp(powlawfit[1])*scale**powlawfit[0])/S1a[0]
@@ -32,16 +32,20 @@ def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=Fal
 	powerbinpadsm = rescale(powerbinpad, scale, np.array((newsize,newsize)), reso)
 	
 	#Perform segmentation
-	cohe, gcoeff, nq = gauss_segmen(powerbinpadsm, q=2.5, qdyn=False, skewl=0.4)
+	cohe, gcoeff, nq = gauss_segmen(powerbinpadsm, q=q, qdyn=qdyn, skewl=0.4)
 	
 	coeffpad = padding(coeff,newsize,newsize)
-	print(coeff[coeff.shape[0]/2.,coeff.shape[1]/2.])
 
 	wtg = np.zeros((newsize,newsize),dtype=complex)
 	wtc = np.zeros((newsize,newsize),dtype=complex)
+	S11ag = np.zeros((newsize,newsize))
+	S11ac = np.zeros((newsize,newsize))
 
 	wtc[cohe] = coeffpad[cohe]
 	wtg[gcoeff] = coeffpad[gcoeff]
+	
+	S11ac[cohe] = powerbinpadsm[cohe]
+	S11ag[gcoeff] = powerbinpadsm[gcoeff]
 
 	wtc = depad(wtc,coeff.shape[0],coeff.shape[1])
 	wtg = depad(wtg,coeff.shape[0],coeff.shape[1])
@@ -50,4 +54,4 @@ def extrapol_seg_angular(coeff, scale, reso, powlawfit, newsize, q=2.5, qdyn=Fal
 		wtc = imsmooth(wtc, (2.*np.sqrt(2.*np.log(2.)))/(scale*reso*2.*np.pi))
 		wtg = imsmooth(wtg, (2.*np.sqrt(2.*np.log(2.)))/(scale*reso*2.*np.pi))
 	
-	return wtc, wtg, powerbinpadsm
+	return wtc, wtg, S11ac, S11ag
