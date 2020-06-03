@@ -2,7 +2,7 @@ import numpy as np
 
 def powspec(image, reso=1, autocorr=False, **kwargs):
 	"""
-	Calculate the power spectrum of a 2D image
+	Calculate the Fourier power spectrum of a 2D image
 
 	Parameters
 	----------

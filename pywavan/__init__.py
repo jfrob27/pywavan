@@ -1,5 +1,6 @@
 name = "pywavan"
 from .powspec import powspec
+from .locspec import locspec
 from .wavan import fan_trans
 from .imsmooth import imsmooth
 from .gauss_beam import gauss_beam

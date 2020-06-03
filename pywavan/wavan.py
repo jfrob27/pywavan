@@ -74,7 +74,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 			wtcoeff[2*M:3*M,:,:] -> Gaussian coefficients
 			where M is the number of scales
 	S11a : data cube of <|wt|^2>
-	wav_k : Array of spatial scales used for the decomposition
+	wav_k : Array of spatial frequencies used for the decomposition
 	S1a : Wavelet power spectra
 		1-dimensional array -> S11(scales)
 		If q !=0 ->
