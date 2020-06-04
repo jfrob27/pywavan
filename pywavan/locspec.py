@@ -41,49 +41,50 @@ def locspec(coords, wav_k, wt, reso, smin, smax, radlim=0.5, phaslim=0.5):
 	
 	"""
 	
-    ko= 5.336
-    delta = (2.*np.sqrt(-2.*np.log(.75)))/ko
-    a = ko/(wav_k*reso)
-    Nscl = smax - smin + 1
-    Ndir = wt.shape[1]
+	ko= 5.336
+	delta = (2.*np.sqrt(-2.*np.log(.75)))/ko
+	a = ko/(wav_k*reso)
+	Nscl = smax - smin + 1
+	Ndir = wt.shape[1]
     
-    locpow = np.zeros((Ndir, Nscl))
-    xlcoords = np.zeros((Ndir, Nscl))
-    ylcoords = np.zeros((Ndir, Nscl))
+	locpow = np.zeros((Ndir, Nscl))
+	xlcoords = np.zeros((Ndir, Nscl))
+	ylcoords = np.zeros((Ndir, Nscl))
     
-    for i in range(Nscl):
-        for j in range(Ndir):
-            #Radius around the source (scale/2)
-            radius = np.int(radlim/(wav_k[i+smin]*reso))
-            #Calculate limits
-            if (coords[1]-radius < 0): yl1 = 0
-            if (coords[1]-radius > 0): yl1 = coords[1]-radius
-            if (coords[0]-radius < 0): xl1 = 0
-            if (coords[0]-radius > 0): xl1 = coords[0]-radius
-            if (coords[1]+radius > wt.shape[2]-1): yl2 = wt.shape[2]
-            if (coords[1]+radius < wt.shape[2]-1): yl2 = coords[1]+radius
-            if (coords[0]+radius > wt.shape[3]-1): xl2 = wt.shape[3]
-            if (coords[0]+radius < wt.shape[3]-1): xl2 = coords[0]+radius
-            #Create sub images for real coefficients and phase
-            wtsub = wt[i+smin,j,yl1:yl2, xl1:xl2]
-            #wtsub = wt[i+smin,j,coords[1]-radius:coords[1]+radius, coords[0]-radius:coords[0]+radius]
-            phasub = np.zeros((yl2-yl1 ,xl2-xl1))
-            phasub[wtsub != 0.] = np.abs(np.arctan(wtsub[wtsub != 0.].imag/wtsub[wtsub != 0.].real))
+	for i in range(Nscl):
+		for j in range(Ndir):
+			#Radius around the source (scale/2)
+			radius = np.int(radlim/(wav_k[i+smin]*reso))
+			#Calculate limits
+			#print(coords[1]-radius, coords[0]-radius, coords[1]+radius, coords[0]+radius)
+			if (coords[1]-radius <= 0): yl1 = 0
+			if (coords[1]-radius > 0): yl1 = coords[1]-radius
+			if (coords[0]-radius <= 0): xl1 = 0
+			if (coords[0]-radius > 0): xl1 = coords[0]-radius
+			if (coords[1]+radius >= wt.shape[2]-1): yl2 = wt.shape[2]
+			if (coords[1]+radius < wt.shape[2]-1): yl2 = coords[1]+radius
+			if (coords[0]+radius >= wt.shape[3]-1): xl2 = wt.shape[3]
+			if (coords[0]+radius < wt.shape[3]-1): xl2 = coords[0]+radius
+			#Create sub images for real coefficients and phase
+			wtsub = wt[i+smin,j,yl1:yl2, xl1:xl2]
+			#wtsub = wt[i+smin,j,coords[1]-radius:coords[1]+radius, coords[0]-radius:coords[0]+radius]
+			phasub = np.zeros((yl2-yl1 ,xl2-xl1))
+			phasub[wtsub != 0.] = np.abs(np.arctan(wtsub[wtsub != 0.].imag/wtsub[wtsub != 0.].real))
             
-            if wtsub.shape == 0:
-                print(i,j)
+			if wtsub.shape == 0:
+				print(i,j)
             
-            #Locate maximum value in real coefficients inside radius
-            maxreal = np.where(wtsub.real == np.max(wtsub.real))
-            
-            if maxreal[0].size > 1 :
-                locpow[j,i] = 'NaN'
-            elif (phasub[maxreal] < phaslim) & (maxreal[0] != 0) & (maxreal[1] != 0) \
+			#Locate maximum value in real coefficients inside radius
+			maxreal = np.where(wtsub.real == np.max(wtsub.real))
+        
+			if maxreal[0].size > 1 :
+				locpow[j,i] = 'NaN'
+			elif (phasub[maxreal] < phaslim) & (maxreal[0] != 0) & (maxreal[1] != 0) \
 					& (maxreal[0] != wtsub.shape[0]-1) & (maxreal[1] != wtsub.shape[1]-1):
-                locpow[j,i] = np.abs(wtsub[maxreal])**2. * a[i+smin]**2. * delta
-                xlcoords[j,i] = maxreal[1]
-                ylcoords[j,i] = maxreal[0]
+				locpow[j,i] = np.abs(wtsub[maxreal])**2. * a[i+smin]**2. * delta
+				xlcoords[j,i] = maxreal[1]
+				ylcoords[j,i] = maxreal[0]
                 
-    locpow[locpow == 0.] = 'NaN'
+	locpow[locpow == 0.] = 'NaN'
     
-    return locpow, xlcoords, ylcoords
+	return locpow, xlcoords, ylcoords
