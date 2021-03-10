@@ -55,6 +55,7 @@ def subfits(input,output,coord):
 				subim[j,i]=im[y1+j,x1+i]
 			if coord.shape[0] == 6:
 				for k in range(depth):
+					print(shape)
 					subim[k,j,i]=im[z1+k,y1+j,x1+i]
 	
 	del im

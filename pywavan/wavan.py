@@ -1,4 +1,5 @@
 import numpy as np
+from tqdm import trange
 from .imsmooth import imsmooth
 from .edges import apodize, padding, depad
 from .uv_plane import uv_plane
@@ -200,7 +201,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	imFT= np.roll(imFT,int(shiftx), axis=1)
 	imFT= np.roll(imFT,int(shifty), axis=0)
 	
-	for j in range(M):
+	for j in trange(M):
 		for i in range(N):
 			uv=0.
 			t=float(delta*i)
@@ -263,6 +264,16 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 			W1cs = imsmooth(W1cs, (2.*np.sqrt(2.*np.log(2.)))/(wav_k[j]*reso*2.*np.pi))
 			W1c[j,:,:] = W1cs
 			del W1cs
+			
+			S1ns = S1n[j,:,:]
+			S1ns = imsmooth(S1ns, (2.*np.sqrt(2.*np.log(2.)))/(wav_k[j]*reso*2.*np.pi))
+			S1n[j,:,:] = S1ns
+			del S1ns
+			
+			S1cs = S1c[j,:,:]
+			S1cs = imsmooth(S1cs, (2.*np.sqrt(2.*np.log(2.)))/(wav_k[j]*reso*2.*np.pi))
+			S1c[j,:,:] = S1cs
+			del S1cs
 				
 	#----------------Wavelet power spectra---------------#
 		
