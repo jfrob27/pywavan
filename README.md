@@ -22,6 +22,14 @@ Here is a non-hexaustive description for some other functions:
 
 ## Installation
 
+**Dependencies**
+
+`pip install tqdm`
+
+`pip install astropy`
+
+**pywavan installation**
+
 Clone this repository:
 
 `git clone https://github.com/jfrob27/pywavan.git`
@@ -30,4 +38,12 @@ and in the *pywavan* directory
 
 `pip install .`
 
-A Notebook tutorial is also available [here](https://nbviewer.jupyter.org/github/jfrob27/pywavan/blob/master/tutorial/tuto_pywavan.ipynb) and in the *tutorial* folder.
+or directly
+
+`pip install git+https://github.com/jfrob27/pywavan.git`
+
+## Tutorials
+
+An introduction Notebook tutorial is available [here](https://nbviewer.jupyter.org/github/jfrob27/pywavan/blob/master/tutorial/tuto_pywavan.ipynb) and in the *tutorial* folder.
+
+Pywavan is also demonstrated on real astrophysical data along some [Turbustat](https://github.com/Astroua/TurbuStat) functions in the following [Notebook](https://nbviewer.jupyter.org/github/jfrob27/workshop/blob/main/multi-scale_analysis.ipynb). This Notebook is also designed to work directly in [Google Colab](https://colab.research.google.com/github/jfrob27/workshop/blob/main/multi-scale_analysis.ipynb).
