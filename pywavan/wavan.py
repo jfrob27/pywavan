@@ -1,5 +1,5 @@
 import numpy as np
-from tqdm import trange
+from tqdm.notebook import trange
 from .imsmooth import imsmooth
 from .edges import apodize, padding, depad
 from .uv_plane import uv_plane
