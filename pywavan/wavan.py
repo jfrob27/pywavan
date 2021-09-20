@@ -1,12 +1,13 @@
 import numpy as np
-from tqdm import trange
+from tqdm.notebook import trange
 from .imsmooth import imsmooth
 from .edges import apodize, padding, depad
 from .uv_plane import uv_plane
 from .gauss_segmen import gauss_segmen
+import matplotlib.pyplot as plt
 
 def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=True,\
-				sigma=None, cutpad=True, smooth=False, angular=False, **kwargs):
+				sigma=None, cutpad=True, smooth=False, angular=False, nan_frame=False, **kwargs):
 	'''
 	Performs fan transform on 'image' input (Kirby, J. F. (2005),Computers and
 	Geosciences, 31(7), 846-864). If an array of spatial scales is not specified
@@ -96,7 +97,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	
 	#-----------------Remove mean value-------------------#
 	if zeromean == True:
-		image -= np.mean(image)
+		image -= np.nanmean(image)
 	
 	#----------Estimate initial standard deviation------------#
 	
@@ -104,7 +105,7 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	#factor on the reconstructed map -> C_del = sig_0 / sig_r
 	#Constant calculated at the end of this function
 	
-	sig_0 = np.std(image)
+	sig_0 = np.nanstd(image)
 		
 	#--------------Apodization--------------------#
 	
@@ -118,6 +119,10 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 		nb = arrdim[0]
 		image = padding(image,arrdim[0],arrdim[1])
 		print(na,nb)
+		
+	if (nan_frame == True):
+		nan_frame_pos = np.where(image != image)
+		image = np.nan_to_num(image, copy=False, nan=0)
 		
 	#--------------Spectral Logarithm--------------------#
 	
@@ -218,6 +223,9 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 			if ('arrdim' in kwargs) & (cutpad == True):
 				W1 = depad(W1,nbo,nao)
 			
+			if (nan_frame == True):
+				W1[nan_frame_pos] = float('NaN')
+			
 			if (angular == False):
 				wt[j,:,:]= wt[j,:,:]+ W1
 			else:
@@ -280,32 +288,32 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 		if pownorm==True:
 			if q != 0:
 				#Power spectra with scale power normalisation
-				S1a[0,j]=np.sum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
-				S1a[1,j]=np.sum(S1c[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
-				S1a[2,j]=np.sum(S1n[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
+				S1a[0,j]=np.nansum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
+				S1a[1,j]=np.nansum(S1c[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
+				S1a[2,j]=np.nansum(S1n[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
 				
 				S11a[j,:,:] = S11[j,:,:] * a[j]**2. * delta / float(N)
 				S11a[M+j,:,:] = S1c[j,:,:] * a[j]**2. * delta / float(N)
 				S11a[2*M+j,:,:] = S1n[j,:,:] * a[j]**2. * delta / float(N)
 				
 			else:
-				S1a[j]=np.sum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
+				S1a[j]=np.nansum(S11[j,:,:]) * a[j]**2. * delta / (float(N) * na * nb)
 				
 				S11a[j,:,:] = S11[j,:,:] * a[j]**2. * delta / float(N)
 				
 		else:
 			if q != 0:
 				#Power spectra without scale power normalisation
-				S1a[0,j]=np.sum(S11[j,:,:]) * delta / (float(N) * na * nb)
-				S1a[1,j]=np.sum(S1c[j,:,:]) * delta / (float(N) * na * nb)
-				S1a[2,j]=np.sum(S1n[j,:,:]) * delta / (float(N) * na * nb)
+				S1a[0,j]=np.nansum(S11[j,:,:]) * delta / (float(N) * na * nb)
+				S1a[1,j]=np.nansum(S1c[j,:,:]) * delta / (float(N) * na * nb)
+				S1a[2,j]=np.nansum(S1n[j,:,:]) * delta / (float(N) * na * nb)
 				
 				S11a[j,:,:] = S11[j,:,:] * delta / float(N)
 				S11a[M+j,:,:] = S1c[j,:,:] * delta / float(N)
 				S11a[2*M+j,:,:] = S1n[j,:,:] * delta / float(N)
 				
 			else:
-				S1a[j]=np.sum(S11[j,:,:]) * delta / (float(N) * na * nb)
+				S1a[j]=np.nansum(S11[j,:,:]) * delta / (float(N) * na * nb)
 				
 				S11a[j,:,:] = S11[j,:,:] * delta / float(N)
 			
@@ -313,19 +321,19 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	if (sigma == None):
 		sigma = None
 	else:
-		sigma = np.std(S11a, axis=(1,2))
+		sigma = np.nanstd(S11a, axis=(1,2))
 	
 	if q != 0:
 		if (angular == False):
 			#Calculate the correction factor -> C_del = sig_0 / sig_r
-			sig_r = np.std(np.sum(wt,axis=0).real)
+			sig_r = np.nanstd(np.nansum(wt,axis=0).real)
 			C_del = sig_0 / sig_r
 			
 			wtcoeff[0:M,:,:] = wt * C_del
 			wtcoeff[M:2*M,:,:] = W1c * C_del
 			wtcoeff[2*M:3*M,:,:] = W1n * C_del
 		else:
-			sig_r = np.std(np.sum(wt,axis=(0,1)).real)
+			sig_r = np.nanstd(np.nansum(wt,axis=(0,1)).real)
 			C_del = sig_0 / sig_r
 			
 			wtcoeff[0:M,:,:,:] = wt * C_del
@@ -333,11 +341,11 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 			wtcoeff[2*M:3*M,:,:,:] = W1n * C_del
 	else:
 		if (angular == False):
-			sig_r = np.std(np.sum(wt,axis=0).real)
+			sig_r = np.nanstd(np.nansum(wt,axis=0).real)
 			C_del = sig_0 / sig_r
 			wtcoeff = wt * C_del
 		else:
-			sig_r = np.std(np.sum(wt,axis=(0,1)).real)
+			sig_r = np.nanstd(np.nansum(wt,axis=(0,1)).real)
 			C_del = sig_0 / sig_r
 			wtcoeff = wt * C_del
 		

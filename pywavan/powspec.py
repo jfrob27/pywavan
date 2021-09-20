@@ -1,6 +1,6 @@
 import numpy as np
 
-def powspec(image, reso=1, autocorr=False, **kwargs):
+def powspec(image, reso=1, autocorr=False, nan_frame=False, **kwargs):
 	"""
 	Calculate the power spectrum of a 2D image
 
@@ -39,6 +39,9 @@ def powspec(image, reso=1, autocorr=False, **kwargs):
 
 	#Fourier transform & 2D power spectrum
 	#---------------------------------------------
+	
+	if(nan_frame == True):
+		image = np.nan_to_num(image, copy=False, nan=0)
 
 	imft=np.fft.fft2(image)
 	
