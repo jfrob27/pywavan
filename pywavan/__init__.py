@@ -10,5 +10,4 @@ from .noisegen import fbm2d, perlin2d
 from .subfits import subfits
 from .rebin import congrid
 from .nb_scale import nb_scale
-from .nan_frame import nan_frame
-from .nan_frame2 import nan_frame2
+from .nan_frame_cut import nan_frame_cut
