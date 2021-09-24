@@ -326,14 +326,14 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 	if q != 0:
 		if (angular == False):
 			#Calculate the correction factor -> C_del = sig_0 / sig_r
-			sig_r = np.nanstd(np.nansum(wt,axis=0).real)
+			sig_r = np.nanstd(np.sum(wt,axis=0).real)
 			C_del = sig_0 / sig_r
 			
 			wtcoeff[0:M,:,:] = wt * C_del
 			wtcoeff[M:2*M,:,:] = W1c * C_del
 			wtcoeff[2*M:3*M,:,:] = W1n * C_del
 		else:
-			sig_r = np.nanstd(np.nansum(wt,axis=(0,1)).real)
+			sig_r = np.nanstd(np.sum(wt,axis=(0,1)).real)
 			C_del = sig_0 / sig_r
 			
 			wtcoeff[0:M,:,:,:] = wt * C_del
@@ -341,11 +341,11 @@ def fan_trans(image, reso=1, q=0, qdyn=False, skewl=0.4, zeromean=True, pownorm=
 			wtcoeff[2*M:3*M,:,:,:] = W1n * C_del
 	else:
 		if (angular == False):
-			sig_r = np.nanstd(np.nansum(wt,axis=0).real)
+			sig_r = np.nanstd(np.sum(wt,axis=0).real)
 			C_del = sig_0 / sig_r
 			wtcoeff = wt * C_del
 		else:
-			sig_r = np.nanstd(np.nansum(wt,axis=(0,1)).real)
+			sig_r = np.nanstd(np.sum(wt,axis=(0,1)).real)
 			C_del = sig_0 / sig_r
 			wtcoeff = wt * C_del
 		
