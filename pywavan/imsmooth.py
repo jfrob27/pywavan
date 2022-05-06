@@ -34,7 +34,8 @@ def imsmooth(im, FWHM):
 	
 	uvmap = np.sqrt(u**2.+v**2.)
 
-	FTgauss = np.pi/2. * np.exp(-(np.pi*uvmap)**2.*2.*sigma**2.)
+	#FTgauss = np.pi/2. * np.exp(-(np.pi*uvmap)**2.*2.*sigma**2.)
+	FTgauss = np.exp(-(np.pi*uvmap)**2.*2.*sigma**2.)
 
 	#-----------------Convolution-----------#
 
